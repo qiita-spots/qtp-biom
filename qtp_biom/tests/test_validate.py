@@ -18,7 +18,7 @@ from biom.util import biom_open
 from qiita_client import QiitaClient
 import httpretty
 
-from biom_type_plugin.validate import validate
+from qtp_biom.validate import validate
 
 
 class CreateTests(TestCase):

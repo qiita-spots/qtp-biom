@@ -13,6 +13,7 @@ before_install:
 install:
   - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy
   - source activate env_name
+  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - travis_retry pip install .
 script:
   - nosetests --with-doctest --with-coverage

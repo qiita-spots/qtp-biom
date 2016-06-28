@@ -45,7 +45,7 @@ def validate(qclient, job_id, parameters, out_dir):
                              % a_type)
 
     qclient.update_job_step(job_id, "Step 1: Collecting prep information")
-    prep_info = qclient.get("/qiita_db/prep_template/%s/data" % prep_id)
+    prep_info = qclient.get("/qiita_db/prep_template/%s/data/" % prep_id)
     prep_info = prep_info['data']
 
     # Check if the biom table has the same sample ids as the prep info

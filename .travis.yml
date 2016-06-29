@@ -15,6 +15,7 @@ install:
   - travis_retry pip install .
 script:
   - biom show-install-info
+  - python setup.py test
   - nosetests --help
   - nosetests -v
   - flake8 qtp_biom setup.py scripts

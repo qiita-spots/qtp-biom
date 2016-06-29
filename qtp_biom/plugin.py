@@ -14,8 +14,8 @@ import sys
 
 from qiita_client import QiitaClient
 
-from biom_type_plugin.validate import validate
-from biom_type_plugin.summary import generate_html_summary
+from qtp_biom.validate import validate
+from qtp_biom.summary import generate_html_summary
 
 with standard_library.hooks():
     from configparser import ConfigParser

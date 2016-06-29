@@ -1,0 +1,33 @@
+language: python
+env:
+    - PYTHON_VERSION=2.7
+before_install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda3/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+install:
+  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy httpretty pandas 'h5py>=2.3.1' matplotlib seaborn
+  - source activate env_name
+  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
+  - travis_retry pip install .
+script:
+  - biom show-install-info
+  - python -c 'import qtp_biom'
+  - python -c 'import qtp_biom.validate'
+  - python -c 'import qtp_biom.plugin'
+  - python -c 'import qtp_biom.summary'
+  - python -c 'from biom import Table, load_table'
+  - python -c 'from biom.util import biom_open'
+  - python -c 'import seaborn'
+  - python -c 'import numpy'
+  - python -c 'import scipy'
+  - python -c 'import matplotlib'
+  - python setup.py test
+  - nosetests --help
+  - nosetests -v
+  - flake8 qtp_biom setup.py scripts
+after_success:
+  - coveralls

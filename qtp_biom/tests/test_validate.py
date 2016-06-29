@@ -16,7 +16,7 @@ from json import dumps
 import numpy as np
 from biom import Table, load_table
 from biom.util import biom_open
-from qiita_client import QiitaClient
+from qiita_client import QiitaClient, ArtifactInfo
 
 from qtp_biom.validate import validate
 
@@ -97,7 +97,8 @@ class CreateTests(TestCase):
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertTrue(obs_success)
-        self.assertEqual(obs_ainfo, [[None, 'BIOM', [biom_fp, 'biom']]])
+        self.assertEqual(
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [biom_fp, 'biom'])])
         self.assertEqual(obs_error, "")
 
     def test_validate_no_changes_superset(self):
@@ -108,7 +109,8 @@ class CreateTests(TestCase):
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertTrue(obs_success)
-        self.assertEqual(obs_ainfo, [[None, 'BIOM', [biom_fp, 'biom']]])
+        self.assertEqual(
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [biom_fp, 'biom'])])
         self.assertEqual(obs_error, "")
 
     def test_validate_unknown_samples(self):
@@ -176,7 +178,8 @@ class CreateTests(TestCase):
         exp_biom_fp = join(self.out_dir, basename(biom_fp))
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
-        self.assertEqual(obs_ainfo, [[None, 'BIOM', [exp_biom_fp, 'biom']]])
+        self.assertEqual(
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [exp_biom_fp, 'biom'])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertItemsEqual(obs_t.ids(), ["1.SKB8.640193", "1.SKD8.640184"])
@@ -199,7 +202,8 @@ class CreateTests(TestCase):
         exp_biom_fp = join(self.out_dir, basename(biom_fp))
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
-        self.assertEqual(obs_ainfo, [[None, 'BIOM', [exp_biom_fp, 'biom']]])
+        self.assertEqual(
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [exp_biom_fp, 'biom'])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertItemsEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])

@@ -13,6 +13,7 @@ from json import loads
 from biom import load_table
 from biom.util import biom_open
 from biom.exception import TableException
+from qiita_client import ArtifactInfo
 
 
 def validate(qclient, job_id, parameters, out_dir):
@@ -31,7 +32,7 @@ def validate(qclient, job_id, parameters, out_dir):
 
     Returns
     -------
-    bool, list of (str, str, list of (str, str)) , str
+    bool, list of qiita_client.ArtifactInfo , str
         Whether the job is successful
         The artifact information, if successful
         The error message, if not successful
@@ -92,4 +93,4 @@ def validate(qclient, job_id, parameters, out_dir):
         with biom_open(new_biom_fp, 'w') as f:
             table.to_hdf5(f, "Qiita BIOM type plugin")
 
-    return True, [[None, 'BIOM', [new_biom_fp, 'biom']]], ""
+    return True, [ArtifactInfo(None, 'BIOM', [new_biom_fp, 'biom'])], ""

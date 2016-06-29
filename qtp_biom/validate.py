@@ -93,4 +93,4 @@ def validate(qclient, job_id, parameters, out_dir):
         with biom_open(new_biom_fp, 'w') as f:
             table.to_hdf5(f, "Qiita BIOM type plugin")
 
-    return True, [ArtifactInfo(None, 'BIOM', [new_biom_fp, 'biom'])], ""
+    return True, [ArtifactInfo(None, 'BIOM', [(new_biom_fp, 'biom')])], ""

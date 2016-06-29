@@ -21,6 +21,10 @@ script:
   - python -c 'import qtp_biom.summary'
   - python -c 'from biom import Table, load_table'
   - python -c 'from biom.util import biom_open'
+  - python -c 'import seaborn'
+  - python -c 'import numpy'
+  - python -c 'import scipy'
+  - python -c 'import matplotlib'
   - python setup.py test
   - nosetests --help
   - nosetests -v

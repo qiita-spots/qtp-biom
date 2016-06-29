@@ -9,12 +9,18 @@ before_install:
   # Update conda itself
   - conda update --yes conda
 install:
-  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy httpretty pandas 'h5py>=2.3.1'
+  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy httpretty pandas 'h5py>=2.3.1' matplotlib
   - source activate env_name
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - travis_retry pip install .
 script:
   - biom show-install-info
+  - python -c 'import qtp_biom'
+  - python -c 'import qtp_biom.validate'
+  - python -c 'import qtp_biom.plugin'
+  - python -c 'import qtp_biom.summary'
+  - python -c 'from biom import Table, load_table'
+  - python -c 'from biom.util import biom_open'
   - python setup.py test
   - nosetests --help
   - nosetests -v

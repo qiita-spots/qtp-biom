@@ -37,10 +37,9 @@ script:
   - nosetests --with-doctest --with-coverage -v
   - flake8 qtp_biom setup.py scripts
 addons:
-    postgresql: "9.3"
+  postgresql: "9.3"
 services:
-    - redis-server
-    - postgresql
-  - ulimit -c unlimited -S
+  - redis-server
+  - postgresql
 after_success:
   - coveralls

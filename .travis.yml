@@ -9,7 +9,7 @@ before_install:
   # Update conda itself
   - conda update --yes conda
 install:
-  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy httpretty pandas 'h5py>=2.3.1' matplotlib
+  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy httpretty pandas 'h5py>=2.3.1' matplotlib seaborn
   - source activate env_name
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - travis_retry pip install .

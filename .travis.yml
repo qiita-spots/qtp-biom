@@ -23,7 +23,7 @@ install:
   - qiita-env make --no-load-ontologies
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - source deactivate
-  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy
+  - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy pandas 'h5py>=2.3.1' matplotlib seaborn
   - source activate env_name
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - travis_retry pip install .

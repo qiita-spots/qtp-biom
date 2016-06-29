@@ -7,45 +7,48 @@
 # -----------------------------------------------------------------------------
 
 from unittest import TestCase, main
-from tempfile import mkstemp, mkdtemp
-from os import close, remove
-from os.path import exists, isdir, join, basename
+from tempfile import mkdtemp
+from os import remove, environ
+from os.path import exists, isdir
 from shutil import rmtree
+from json import dumps
 
-import numpy as np
-from biom import Table
-
-from biom.util import biom_open
 from qiita_client import QiitaClient
-import httpretty
 
 from qtp_biom.summary import generate_html_summary
 
 
-class SummaryTestsWith(TestCase):
-    @httpretty.activate
-    def setUp(self):
-        # Registewr the URIs for the QiitaClient
-        httpretty.register_uri(
-            httpretty.POST,
-            "https://test_server.com/qiita_db/authenticate/",
-            body='{"access_token": "token", "token_type": "Bearer", '
-                 '"expires_in": "3600"}')
+CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
+CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
+                 'AmmCWZuabe0O5Mp28s1')
 
-        self.qclient = QiitaClient('https://test_server.com', 'client_id',
-                                   'client_secret')
-        # Create a biom table
-        fd, self.biom_fp = mkstemp(suffix=".biom")
-        close(fd)
-        data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        table = Table(data, ['O1', 'O2'], ['1.S1', '1.S2', '1.S3'])
-        with biom_open(self.biom_fp, 'w') as f:
-            table.to_hdf5(f, "Test")
-        self.out_dir = mkdtemp()
+
+class SummaryTestsWith(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        # Reset the test database
+        server_cert = environ.get('QIITA_SERVER_CERT', None)
+        qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
+                              CLIENT_SECRET, server_cert=server_cert)
+        qclient.post("/apitest/reset/")
+
+    def setUp(self):
+        self.server_cert = environ.get('QIITA_SERVER_CERT', None)
+        self.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
+                                   CLIENT_SECRET, server_cert=self.server_cert)
+
         self.artifact_id = 4
         self.parameters = {'input_data': self.artifact_id}
 
-        self._clean_up_files = [self.biom_fp, self.out_dir]
+        data = {'command': 5,
+                'parameters': dumps(self.parameters),
+                'status': 'running'}
+        self.job_id = self.qclient.post(
+            '/apitest/processing_job/', data=data)['job']
+
+        self.out_dir = mkdtemp()
+
+        self._clean_up_files = [self.out_dir]
 
     def tearDown(self):
         for fp in self._clean_up_files:
@@ -55,16 +58,9 @@ class SummaryTestsWith(TestCase):
                 else:
                     remove(fp)
 
-    @httpretty.activate
     def test_generate_html_summary(self):
-        httpretty_url = ("https://test_server.com/qiita_db/artifacts/"
-                         "%s/filepaths/" % self.artifact_id)
-        httpretty.register_uri(
-            httpretty.GET, httpretty_url,
-            body=('{"filepaths": [["%s", "biom"]]}' % self.biom_fp))
-        httpretty.register_uri(httpretty.PATCH, httpretty_url)
         obs_success, obs_ainfo, obs_error = generate_html_summary(
-            self.qclient, 'job-id', self.parameters, self.out_dir)
+            self.qclient, self.job_id, self.parameters, self.out_dir)
 
         # asserting reply
         self.assertTrue(obs_success)
@@ -72,18 +68,21 @@ class SummaryTestsWith(TestCase):
         self.assertEqual(obs_error, "")
 
         # asserting content of html
-        html_fp = join(self.out_dir, "%s.html" % basename(self.biom_fp))
+        res = self.qclient.get("/qiita_db/artifacts/%s/" % self.artifact_id)
+        html_fp = res['files']['html_summary'][0]
+        self._clean_up_files.append(html_fp)
+
         with open(html_fp) as html_f:
             html = html_f.read()
         self.assertRegexpMatches(html, '\n'.join(EXP_HTML_REGEXP))
 
 EXP_HTML_REGEXP = [
-    '<b>Number of samples:</b> 3<br/>',
-    '<b>Number of features:</b> 2<br/>',
-    '<b>Minimum count:</b> 1<br/>',
-    '<b>Maximum count:</b> 43<br/>',
-    '<b>Median count:</b> 3<br/>',
-    '<b>Mean count:</b> 15<br/>',
+    '<b>Number of samples:</b> 7<br/>',
+    '<b>Number of features:</b> 4202<br/>',
+    '<b>Minimum count:</b> 9594<br/>',
+    '<b>Maximum count:</b> 14509<br/>',
+    '<b>Median count:</b> 12713<br/>',
+    '<b>Mean count:</b> 12472<br/>',
     '<br/><hr/><br/>',
     '<img src = "data:image/png;base64,.*"/>']
 

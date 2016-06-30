@@ -30,20 +30,20 @@ with open('README.rst') as f:
 
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
-setup(name='qiita-type-plugin-biom',
+setup(name='qtp-biom',
       version=__version__,
       long_description=long_description,
       license="BSD",
       description='Qiita Type Plugin: BIOM',
       author="Qiita development team",
       author_email="qiita.help@gmail.com",
-      url='https://github.com/biocore/qiita',
+      url='https://github.com/qiita-spots/qtp-biom',
       test_suite='nose.collector',
-      packages=['biom_type_plugin'],
-      package_data={'biom_type_plugin': ['support_files/config_file.cfg']},
+      packages=['qtp_biom'],
+      package_data={'qtp_biom': ['support_files/config_file.cfg']},
       scripts=glob('scripts/*'),
       extras_require={'test': ["nose >= 0.10.1", "pep8", 'httpretty']},
       install_requires=['click >= 3.3', 'biom-format >= 2.1.4, < 2.2.0',
-                        'seaborn'],
+                        'seaborn', 'qiita_client'],
       classifiers=classifiers
       )

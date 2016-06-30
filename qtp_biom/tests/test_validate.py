@@ -98,7 +98,7 @@ class CreateTests(TestCase):
             self.qclient, job_id, parameters, self.out_dir)
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [biom_fp, 'biom'])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(biom_fp, 'biom')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_no_changes_superset(self):
@@ -110,7 +110,7 @@ class CreateTests(TestCase):
             self.qclient, job_id, parameters, self.out_dir)
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [biom_fp, 'biom'])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(biom_fp, 'biom')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_unknown_samples(self):
@@ -179,7 +179,7 @@ class CreateTests(TestCase):
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [exp_biom_fp, 'biom'])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(exp_biom_fp, 'biom')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertItemsEqual(obs_t.ids(), ["1.SKB8.640193", "1.SKD8.640184"])
@@ -203,7 +203,7 @@ class CreateTests(TestCase):
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [exp_biom_fp, 'biom'])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(exp_biom_fp, 'biom')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertItemsEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])

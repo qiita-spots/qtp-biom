@@ -42,7 +42,7 @@ setup(name='qtp-biom',
       packages=['qtp_biom'],
       package_data={'qtp_biom': ['support_files/config_file.cfg']},
       scripts=glob('scripts/*'),
-      extras_require={'test': ["nose >= 0.10.1", "pep8", 'httpretty']},
+      extras_require={'test': ["nose >= 0.10.1", "pep8"]},
       install_requires=['click >= 3.3', 'biom-format >= 2.1.4, < 2.2.0',
                         'seaborn', 'qiita_client'],
       classifiers=classifiers

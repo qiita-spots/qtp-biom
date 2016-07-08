@@ -10,7 +10,7 @@
 
 import click
 
-from biom_type_plugin.plugin import execute_job
+from qtp_biom.plugin import execute_job
 
 
 @click.command()

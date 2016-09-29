@@ -36,7 +36,7 @@ before_script:
 script:
   - source activate env_name
   - sleep 5 # give enough time to the webserver to start
-  - configure_biom --env-script "source activate env_name" --server-cert $QIITA_CONFIG_FP
+  - configure_biom --env-script "source activate env_name" --server-cert $QIITA_SERVER_CERT
   - nosetests --with-doctest --with-coverage
   - flake8 qtp_biom setup.py scripts
 addons:

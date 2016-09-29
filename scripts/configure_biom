@@ -14,12 +14,15 @@ from qtp_biom import plugin
 
 
 @click.command()
-@click.argument('url', required=True)
-@click.argument('job_id', required=True)
-@click.argument('output_dir', required=True)
-def execute(url, job_id, output_dir):
-    """Executes the task given by job_id and puts the output in output_dir"""
-    plugin(url, job_id, output_dir)
+def config():
+    """Generates the Qiita configuration files"""
+    env_script = click.prompt('Environment script',
+                              default='source activate qtp-biom')
+    server_cert = click.prompt('Server certificate', default='None')
+    if server_cert == 'None':
+        server_cert = None
+    plugin.generate_config(env_script, 'start_biom',
+                           server_cert=server_cert)
 
 if __name__ == '__main__':
-    execute()
+    config()

@@ -6,9 +6,9 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from tempfile import mkstemp, mkdtemp
-from os import close, remove, environ
+from os import close, remove
 from os.path import exists, isdir, join, basename
 from shutil import rmtree
 from json import dumps
@@ -16,30 +16,15 @@ from json import dumps
 import numpy as np
 from biom import Table, load_table
 from biom.util import biom_open
-from qiita_client import QiitaClient, ArtifactInfo
+from qiita_client import ArtifactInfo
+from qiita_client.testing import PluginTestCase
 
 from qtp_biom.validate import validate
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
 
-
-class CreateTests(TestCase):
-    @classmethod
-    def tearDownClass(cls):
-        # Reset the test database
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                              CLIENT_SECRET, server_cert=server_cert)
-        qclient.post("/apitest/reset/")
-
+class CreateTests(PluginTestCase):
     def setUp(self):
-        self.server_cert = environ.get('QIITA_SERVER_CERT', None)
-        self.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                   CLIENT_SECRET, server_cert=self.server_cert)
         self.out_dir = mkdtemp()
-
         self._clean_up_files = [self.out_dir]
 
     def tearDown(self):
@@ -64,7 +49,7 @@ class CreateTests(TestCase):
         parameters = {'template': template,
                       'files': dumps({'BIOM': [biom_fp]}),
                       'artifact_type': 'BIOM'}
-        data = {'command': 4,
+        data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
                 'parameters': dumps(parameters),
                 'status': 'running'}
         res = self.qclient.post('/apitest/processing_job/', data=data)

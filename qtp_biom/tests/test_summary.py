@@ -6,41 +6,25 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from tempfile import mkdtemp
-from os import remove, environ
+from os import remove
 from os.path import exists, isdir
 from shutil import rmtree
 from json import dumps
 
-from qiita_client import QiitaClient
+from qiita_client.testing import PluginTestCase
 
 from qtp_biom.summary import generate_html_summary
 
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
-
-
-class SummaryTestsWith(TestCase):
-    @classmethod
-    def tearDownClass(cls):
-        # Reset the test database
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                              CLIENT_SECRET, server_cert=server_cert)
-        qclient.post("/apitest/reset/")
-
+class SummaryTestsWith(PluginTestCase):
     def setUp(self):
-        self.server_cert = environ.get('QIITA_SERVER_CERT', None)
-        self.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                   CLIENT_SECRET, server_cert=self.server_cert)
-
         self.artifact_id = 4
         self.parameters = {'input_data': self.artifact_id}
 
-        data = {'command': 5,
+        data = {'command': dumps(['BIOM type', '2.1.4',
+                                  'Generate HTML summary']),
                 'parameters': dumps(self.parameters),
                 'status': 'running'}
         self.job_id = self.qclient.post(

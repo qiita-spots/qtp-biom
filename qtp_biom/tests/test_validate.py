@@ -47,7 +47,7 @@ class CreateTests(PluginTestCase):
 
         # Create a new job
         parameters = {'template': template,
-                      'files': dumps({'BIOM': [biom_fp]}),
+                      'files': dumps({'biom': [biom_fp]}),
                       'artifact_type': 'BIOM'}
         data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
                 'parameters': dumps(parameters),

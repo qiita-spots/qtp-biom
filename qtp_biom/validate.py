@@ -51,7 +51,7 @@ def validate(qclient, job_id, parameters, out_dir):
 
     # Check if the biom table has the same sample ids as the prep info
     qclient.update_job_step(job_id, "Step 2: Validting BIOM file")
-    new_biom_fp = biom_fp = files['BIOM'][0]
+    new_biom_fp = biom_fp = files['biom'][0]
     table = load_table(biom_fp)
     pt_sample_ids = set(prep_info)
     biom_sample_ids = set(table.ids())

@@ -66,7 +66,7 @@ class PluginTests(PluginTestCase):
             table.to_hdf5(f, "Test")
         data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
                 'parameters': dumps(
-                    {'files': dumps({'BIOM': [biom_fp]}),
+                    {'files': dumps({'biom': [biom_fp]}),
                      'template': template,
                      'artifact_type': 'BIOM'}),
                 'artifact_type': 'BIOM',
@@ -96,7 +96,7 @@ class PluginTests(PluginTestCase):
             table.to_hdf5(f, "Test")
         data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
                 'parameters': dumps(
-                    {'files': dumps({'BIOM': [biom_fp]}),
+                    {'files': dumps({'biom': [biom_fp]}),
                      'template': template,
                      'artifact_type': 'BIOM'}),
                 'artifact_type': 'BIOM',

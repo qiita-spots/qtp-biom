@@ -12,6 +12,7 @@ from os import remove, close
 from os.path import exists, isdir
 from shutil import rmtree
 from json import dumps
+from time import sleep
 
 import numpy as np
 from biom import Table
@@ -34,6 +35,14 @@ class PluginTests(PluginTestCase):
                 else:
                     remove(fp)
 
+    def _wait_job(self, job_id):
+        for i in range(5):
+            status = self.qclient.get_job_info(job_id)['status']
+            if status != 'running':
+                break
+            sleep(1)
+        return status
+
     def test_execute_job_summary(self):
         # Create a summary job
         data = {'command': dumps(['BIOM type', '2.1.4',
@@ -45,8 +54,8 @@ class PluginTests(PluginTestCase):
 
         plugin("https://localhost:21174", job_id, self.out_dir)
 
-        obs = self.qclient.get_job_info(job_id)
-        self.assertEqual(obs['status'], 'success')
+        obs = self._wait_job(job_id)
+        self.assertEqual(obs, 'success')
 
     def test_execute_job_validate(self):
         # Create a prep template
@@ -75,8 +84,8 @@ class PluginTests(PluginTestCase):
             '/apitest/processing_job/', data=data)['job']
 
         plugin("https://localhost:21174", job_id, self.out_dir)
-        obs = self.qclient.get_job_info(job_id)
-        self.assertEqual(obs['status'], 'success')
+        obs = self._wait_job(job_id)
+        self.assertEqual(obs, 'success')
 
     def test_execute_job_error(self):
         # Create a prep template
@@ -105,8 +114,8 @@ class PluginTests(PluginTestCase):
             '/apitest/processing_job/', data=data)['job']
 
         plugin("https://localhost:21174", job_id, self.out_dir)
-        obs = self.qclient.get_job_info(job_id)
-        self.assertEqual(obs['status'], 'error')
+        obs = self._wait_job(job_id)
+        self.assertEqual(obs, 'error')
 
 if __name__ == '__main__':
     main()

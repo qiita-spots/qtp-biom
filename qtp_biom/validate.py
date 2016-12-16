@@ -14,6 +14,7 @@ from biom import load_table
 from biom.util import biom_open
 from biom.exception import TableException
 from qiita_client import ArtifactInfo
+from qiita_files.parse import load, FastaIterator
 
 
 def validate(qclient, job_id, parameters, out_dir):
@@ -93,4 +94,41 @@ def validate(qclient, job_id, parameters, out_dir):
         with biom_open(new_biom_fp, 'w') as f:
             table.to_hdf5(f, "Qiita BIOM type plugin")
 
-    return True, [ArtifactInfo(None, 'BIOM', [(new_biom_fp, 'biom')])], ""
+    filepaths = [(new_biom_fp, 'biom')]
+
+    # Validate the representative set, if it exists
+    if 'preprocessed_fasta' in files:
+        repset_fp = files['preprocessed_fasta'][0]
+
+        # The observations ids of the biom table should be the same
+        # as the representative sequences ids found in the representative set
+        observation_ids = table.ids(axis='observation').tolist()
+        extra_ids = []
+        for record in load([repset_fp], constructor=FastaIterator):
+            rec_id = record['SequenceID'].split()[0]
+            try:
+                observation_ids.remove(rec_id)
+            except ValueError:
+                extra_ids.append(rec_id)
+
+        error_msg = []
+        if extra_ids:
+            error_msg.append("The representative set sequence file includes "
+                             "observations not found in the BIOM table: %s"
+                             % ', '.join(extra_ids))
+        if observation_ids:
+            error_msg.append("The representative set sequence file is missing "
+                             "observation ids found in the BIOM tabe: %s" %
+                             ', '.join(observation_ids))
+
+        if error_msg:
+            return False, None, '\n'.join(error_msg)
+
+        filepaths.append((repset_fp, 'preprocessed_fasta'))
+
+    for fp_type, fps in files.items():
+        if fp_type not in ('biom', 'preprocessed_fasta'):
+            for fp in fps:
+                filepaths.append((fp, fp_type))
+
+    return True, [ArtifactInfo(None, 'BIOM', filepaths)], ""

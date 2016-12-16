@@ -193,5 +193,54 @@ class CreateTests(PluginTestCase):
         obs_t = load_table(exp_biom_fp)
         self.assertItemsEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])
 
+    def test_validate_representative_set(self):
+        sample_ids = ['1.SKB2.640194', '1.SKM4.640180', '1.SKB3.640195',
+                      '1.SKB6.640176', '1.SKD6.640190', '1.SKM6.640187',
+                      '1.SKD9.640182', '1.SKM8.640201', '1.SKM2.640199']
+        biom_fp, job_id, parameters = self._create_job_and_biom(sample_ids)
+
+        fd, fasta_fp = mkstemp(suffix=".fna")
+        close(fd)
+        with open(fasta_fp, 'w') as f:
+            f.write(">O1 something\nACTG\n>O2\nATGC\n")
+        self._clean_up_files.append(fasta_fp)
+
+        parameters = {'template': parameters['template'],
+                      'files': dumps({'biom': [biom_fp],
+                                      'preprocessed_fasta': [fasta_fp]}),
+                      'artifact_type': 'BIOM'}
+
+        obs_success, obs_ainfo, obs_error = validate(
+            self.qclient, job_id, parameters, self.out_dir)
+        self.assertTrue(obs_success)
+        files = [(biom_fp, 'biom'), (fasta_fp, 'preprocessed_fasta')]
+        self.assertEqual(
+            obs_ainfo, [ArtifactInfo(None, 'BIOM',  files)])
+        self.assertEqual(obs_error, "")
+
+        # Extra ids
+        with open(fasta_fp, 'w') as f:
+            f.write(">O1 something\nACTG\n>O2\nATGC\n>O3\nATGC\n")
+        obs_success, obs_ainfo, obs_error = validate(
+            self.qclient, job_id, parameters, self.out_dir)
+        self.assertFalse(obs_success)
+        self.assertIsNone(obs_ainfo)
+        self.assertEqual(
+            obs_error,
+            "The representative set sequence file includes observations not "
+            "found in the BIOM table: O3")
+
+        # Missing ids
+        with open(fasta_fp, 'w') as f:
+            f.write(">O1 something\nACTG\n")
+        obs_success, obs_ainfo, obs_error = validate(
+            self.qclient, job_id, parameters, self.out_dir)
+        self.assertFalse(obs_success)
+        self.assertIsNone(obs_ainfo)
+        self.assertEqual(
+            obs_error,
+            "The representative set sequence file is missing observation ids "
+            "found in the BIOM tabe: O2")
+
 if __name__ == '__main__':
     main()

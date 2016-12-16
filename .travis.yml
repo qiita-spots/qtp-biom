@@ -26,7 +26,7 @@ install:
   - travis_retry conda create --yes -n env_name python=$PYTHON_VERSION pip nose flake8 coverage numpy pandas 'h5py>=2.3.1' matplotlib seaborn
   - source activate env_name
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-  - travis_retry pip install .
+  - travis_retry pip install . --process-dependency-links
 before_script:
   - source activate qiita_env
   - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg

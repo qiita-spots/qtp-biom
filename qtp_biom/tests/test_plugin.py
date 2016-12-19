@@ -90,6 +90,7 @@ class PluginTests(PluginTestCase):
 
     def test_execute_job_error(self):
         # Create a prep template
+        print "START TEST"
         prep_info = {'SKB8.640193': {'col': 'val1'},
                      'SKD8.640184': {'col': 'val2'}}
         data = {'prep_info': dumps(prep_info),
@@ -97,6 +98,7 @@ class PluginTests(PluginTestCase):
                 'data_type': '16S'}
         template = self.qclient.post(
             '/apitest/prep_template/', data=data)['prep']
+        print "PREP TEMPLATE CREATED"
         # Create a new validate job
         fd, biom_fp = mkstemp(suffix=".biom")
         close(fd)
@@ -104,6 +106,7 @@ class PluginTests(PluginTestCase):
         table = Table(data, ['O1', 'O2'], ['S1', 'S2'])
         with biom_open(biom_fp, 'w') as f:
             table.to_hdf5(f, "Test")
+        print "BIOM TABLE CREATED"
         data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
                 'parameters': dumps(
                     {'files': dumps({'biom': [biom_fp]}),
@@ -113,6 +116,7 @@ class PluginTests(PluginTestCase):
                 'status': 'queued'}
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
+        print "JOB CREATED"
 
         print "WHAT ABOUT HERE?"
         plugin("https://localhost:21174", job_id, self.out_dir)

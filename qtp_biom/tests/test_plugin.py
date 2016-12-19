@@ -40,7 +40,8 @@ class PluginTests(PluginTestCase):
             status = self.qclient.get_job_info(job_id)['status']
             if status != 'running':
                 break
-            sleep(1)
+            sleep(0.5)
+            print "TRYING TO DEBUG IN HERE"
         return status
 
     def test_execute_job_summary(self):
@@ -113,8 +114,11 @@ class PluginTests(PluginTestCase):
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
 
+        print "WHAT ABOUT HERE?"
         plugin("https://localhost:21174", job_id, self.out_dir)
+        print "HEY DONE!!!"
         obs = self._wait_job(job_id)
+        print "I CAN'T WAIT ANYMORE"
         self.assertEqual(obs, 'error')
 
 if __name__ == '__main__':

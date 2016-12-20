@@ -82,6 +82,7 @@ def validate(qclient, job_id, parameters, out_dir):
                              'provide the column "run_prefix" in the prep '
                              'information to map the existing sample ids to '
                              'the prep information sample ids.')
+                print "EXIT POINT 1"
                 return False, None, error_msg
 
         # Fix the sample ids
@@ -91,8 +92,10 @@ def validate(qclient, job_id, parameters, out_dir):
             missing = biom_sample_ids - set(id_map)
             error_msg = ('Your prep information is missing samples that are '
                          'present in your BIOM table: %s' % ', '.join(missing))
+            print "EXIT POINT 2"
             return False, None, error_msg
 
+        print "WRITING TABLE"
         new_biom_fp = join(out_dir, basename(biom_fp))
         with biom_open(new_biom_fp, 'w') as f:
             table.to_hdf5(f, "Qiita BIOM type plugin")

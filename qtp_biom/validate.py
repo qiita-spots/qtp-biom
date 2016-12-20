@@ -46,17 +46,20 @@ def validate(qclient, job_id, parameters, out_dir):
         return (False, None, "Unknown artifact type %s. Supported types: BIOM"
                              % a_type)
 
+    print "Collecting prep information"
     qclient.update_job_step(job_id, "Step 1: Collecting prep information")
     prep_info = qclient.get("/qiita_db/prep_template/%s/data/" % prep_id)
     prep_info = prep_info['data']
 
     # Check if the biom table has the same sample ids as the prep info
+    print "Validating BIOM file"
     qclient.update_job_step(job_id, "Step 2: Validting BIOM file")
     new_biom_fp = biom_fp = files['biom'][0]
     table = load_table(biom_fp)
     pt_sample_ids = set(prep_info)
     biom_sample_ids = set(table.ids())
 
+    print "Some if in validate"
     if not pt_sample_ids.issuperset(biom_sample_ids):
         # The BIOM sample ids are different from the ones in the prep template
         qclient.update_job_step(job_id, "Step 3: Fixing BIOM sample ids")
@@ -96,6 +99,7 @@ def validate(qclient, job_id, parameters, out_dir):
 
     filepaths = [(new_biom_fp, 'biom')]
 
+    print "Is there a representative set?"
     # Validate the representative set, if it exists
     if 'preprocessed_fasta' in files:
         repset_fp = files['preprocessed_fasta'][0]
@@ -126,9 +130,11 @@ def validate(qclient, job_id, parameters, out_dir):
 
         filepaths.append((repset_fp, 'preprocessed_fasta'))
 
+    print "Getting the files in place"
     for fp_type, fps in files.items():
         if fp_type not in ('biom', 'preprocessed_fasta'):
             for fp in fps:
                 filepaths.append((fp, fp_type))
 
+    print "Done! Returning!"
     return True, [ArtifactInfo(None, 'BIOM', filepaths)], ""

@@ -36,6 +36,7 @@ before_script:
 script:
   - source activate env_name
   - sleep 5 # give enough time to the webserver to start
+  - python qtp_biom/tests/test_plugin.py
   - nosetests --with-coverage -v
   - flake8 qtp_biom setup.py scripts
 addons:

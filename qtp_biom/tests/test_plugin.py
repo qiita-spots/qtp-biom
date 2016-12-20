@@ -113,9 +113,7 @@ class PluginTests(PluginTestCase):
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
 
-        print "Call to plugin from the test!"
         plugin("https://localhost:21174", job_id, self.out_dir)
-        print "Done calling plugin!"
         obs = self._wait_job(job_id)
         self.assertEqual(obs, 'error')
 

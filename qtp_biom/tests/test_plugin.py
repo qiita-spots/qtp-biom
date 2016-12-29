@@ -36,7 +36,7 @@ class PluginTests(PluginTestCase):
                     remove(fp)
 
     def _wait_job(self, job_id):
-        for i in range(5):
+        for i in range(10):
             status = self.qclient.get_job_info(job_id)['status']
             if status != 'running':
                 break

@@ -17,8 +17,7 @@ install:
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
   - source activate qiita_env
   - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
-  - pip install https://github.com/josenavas/QiiTa/archive/unmoi-job-completion.zip --process-dependency-links
-  # - pip install https://github.com/biocore/qiita/archive/master.zip --process-dependency-links
+  - pip install https://github.com/biocore/qiita/archive/master.zip --process-dependency-links
   - ipython profile create qiita-general --parallel
   - qiita-env start_cluster qiita-general
   - qiita-env make --no-load-ontologies
@@ -28,14 +27,15 @@ install:
   - source activate env_name
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - travis_retry pip install . --process-dependency-links
+  - configure_biom --env-script "source activate env_name" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita_env
   - export MOI_CONFIG_FP=$HOME/miniconda3/envs/qiita_env/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg
+  - qiita plugins update
   - qiita pet webserver --no-build-docs start &
 script:
   - source activate env_name
   - sleep 5 # give enough time to the webserver to start
-  - configure_biom --env-script "source activate env_name" --server-cert $QIITA_SERVER_CERT
   - nosetests --with-doctest --with-coverage -v
   - flake8 qtp_biom setup.py scripts
 addons:

@@ -35,7 +35,7 @@ class CreateTests(PluginTestCase):
                 else:
                     remove(fp)
 
-    def _create_job_and_biom(self, sample_ids, template=1):
+    def _create_job_and_biom(self, sample_ids, template=None, analysis=None):
         # Create the BIOM table that needs to be valdiated
         fd, biom_fp = mkstemp(suffix=".biom")
         close(fd)
@@ -48,7 +48,8 @@ class CreateTests(PluginTestCase):
         # Create a new job
         parameters = {'template': template,
                       'files': dumps({'biom': [biom_fp]}),
-                      'artifact_type': 'BIOM'}
+                      'artifact_type': 'BIOM',
+                      'analysis': analysis}
         data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
                 'parameters': dumps(parameters),
                 'status': 'running'}
@@ -56,6 +57,14 @@ class CreateTests(PluginTestCase):
         job_id = res['job']
 
         return biom_fp, job_id, parameters
+
+    def test_validate_analysis(self):
+        sample_ids = ['1.SKM4.640180', '1.SKB8.640193', '1.SKD8.640184',
+                      '1.SKM9.640192', '1.SKB7.640196']
+        biom_fp, job_id, parameters = self._create_job_and_biom(
+            sample_ids, analysis=1)
+        obs_success, obs_ainfo, obs_error = validate(
+            self.qclient, job_id, parameters, self.out_dir)
 
     def test_validate_unknown_type(self):
         parameters = {'template': 1, 'files': dumps({'BIOM': ['ignored']}),
@@ -77,7 +86,8 @@ class CreateTests(PluginTestCase):
                       '1.SKD3.640198', '1.SKB5.640181', '1.SKB4.640189',
                       '1.SKB9.640200', '1.SKM9.640192', '1.SKD8.640184',
                       '1.SKM5.640177', '1.SKM7.640188', '1.SKD7.640191']
-        biom_fp, job_id, parameters = self._create_job_and_biom(sample_ids)
+        biom_fp, job_id, parameters = self._create_job_and_biom(
+            sample_ids, template=1)
 
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
@@ -90,7 +100,8 @@ class CreateTests(PluginTestCase):
         sample_ids = ['1.SKB2.640194', '1.SKM4.640180', '1.SKB3.640195',
                       '1.SKB6.640176', '1.SKD6.640190', '1.SKM6.640187',
                       '1.SKD9.640182', '1.SKM8.640201', '1.SKM2.640199']
-        biom_fp, job_id, parameters = self._create_job_and_biom(sample_ids)
+        biom_fp, job_id, parameters = self._create_job_and_biom(
+            sample_ids, template=1)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertTrue(obs_success)
@@ -197,7 +208,8 @@ class CreateTests(PluginTestCase):
         sample_ids = ['1.SKB2.640194', '1.SKM4.640180', '1.SKB3.640195',
                       '1.SKB6.640176', '1.SKD6.640190', '1.SKM6.640187',
                       '1.SKD9.640182', '1.SKM8.640201', '1.SKM2.640199']
-        biom_fp, job_id, parameters = self._create_job_and_biom(sample_ids)
+        biom_fp, job_id, parameters = self._create_job_and_biom(
+            sample_ids, template=1)
 
         fd, fasta_fp = mkstemp(suffix=".fna")
         close(fd)

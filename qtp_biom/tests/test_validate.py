@@ -254,5 +254,6 @@ class CreateTests(PluginTestCase):
             "The representative set sequence file is missing observation ids "
             "found in the BIOM tabe: O2")
 
+
 if __name__ == '__main__':
     main()

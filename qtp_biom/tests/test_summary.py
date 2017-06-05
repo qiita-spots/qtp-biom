@@ -70,5 +70,6 @@ EXP_HTML_REGEXP = [
     '<br/><hr/><br/>',
     '<img src = "data:image/png;base64,.*"/>']
 
+
 if __name__ == '__main__':
     main()

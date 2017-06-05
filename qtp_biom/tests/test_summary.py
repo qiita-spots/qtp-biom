@@ -60,6 +60,7 @@ class SummaryTestsWith(PluginTestCase):
             html = html_f.read()
         self.assertRegexpMatches(html, '\n'.join(EXP_HTML_REGEXP))
 
+
 EXP_HTML_REGEXP = [
     '<b>Number of samples:</b> 7<br/>',
     '<b>Number of features:</b> 4202<br/>',
@@ -69,6 +70,7 @@ EXP_HTML_REGEXP = [
     '<b>Mean count:</b> 12472<br/>',
     '<br/><hr/><br/>',
     '<img src = "data:image/png;base64,.*"/>']
+
 
 if __name__ == '__main__':
     main()

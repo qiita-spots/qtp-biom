@@ -88,7 +88,8 @@ EXP_HTML_RAREFIED = [
     '<b>Median count:</b> 6<br/>',
     '<b>Mean count:</b> 6<br/>',
     '<br/><hr/><br/>',
-    'All the samples in your BIOM table have 6 sequences']
+    'All the samples in your BIOM table have 6 sequences, '
+    'no plot will be shown below.']
 
 
 if __name__ == '__main__':

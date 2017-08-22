@@ -61,7 +61,8 @@ def _generate_html(biom):
     if sample_count_summary['Minimum count'] == sample_count_summary[
             'Maximum count']:
         artifact_information.append(
-            "All the samples in your BIOM table have %d sequences"
+            "All the samples in your BIOM table have %d sequences, "
+            "no plot will be shown below."
             % sample_count_summary['Minimum count'])
     else:
         ax = sns.distplot(sample_counts)

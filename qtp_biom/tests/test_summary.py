@@ -13,9 +13,11 @@ from os.path import exists, isdir
 from shutil import rmtree
 from json import dumps
 
+from biom import Table
+import numpy as np
 from qiita_client.testing import PluginTestCase
 
-from qtp_biom.summary import generate_html_summary
+from qtp_biom.summary import generate_html_summary, _generate_html
 
 
 class SummaryTestsWith(PluginTestCase):
@@ -60,6 +62,13 @@ class SummaryTestsWith(PluginTestCase):
             html = html_f.read()
         self.assertRegexpMatches(html, '\n'.join(EXP_HTML_REGEXP))
 
+    def test_generate_html_summary_rarefied(self):
+        # Create a new biom table
+        data = np.asarray([[0, 2, 4], [2, 2, 2], [4, 2, 0]])
+        table = Table(data, ['O1', 'O2', 'O3'], ['S1', 'S2', 'S3'])
+        obs = _generate_html(table)
+        self.assertEqual(obs, '\n'.join(EXP_HTML_RAREFIED))
+
 
 EXP_HTML_REGEXP = [
     '<b>Number of samples:</b> 7<br/>',
@@ -70,6 +79,16 @@ EXP_HTML_REGEXP = [
     '<b>Mean count:</b> 12472<br/>',
     '<br/><hr/><br/>',
     '<img src = "data:image/png;base64,.*"/>']
+
+EXP_HTML_RAREFIED = [
+    '<b>Number of samples:</b> 3<br/>',
+    '<b>Number of features:</b> 3<br/>',
+    '<b>Minimum count:</b> 6<br/>',
+    '<b>Maximum count:</b> 6<br/>',
+    '<b>Median count:</b> 6<br/>',
+    '<b>Mean count:</b> 6<br/>',
+    '<br/><hr/><br/>',
+    'All the samples in your BIOM table have 6 sequences']
 
 
 if __name__ == '__main__':

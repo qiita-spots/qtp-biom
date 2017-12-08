@@ -29,7 +29,7 @@ install:
   - travis_retry pip install . --process-dependency-links
   - configure_biom --env-script "source activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 before_script:
-  - source activate qtp-biom
+  - source activate qiita
   - qiita plugins update
   - qiita pet webserver --no-build-docs start &
 script:

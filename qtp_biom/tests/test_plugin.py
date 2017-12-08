@@ -117,5 +117,6 @@ class PluginTests(PluginTestCase):
         obs = self._wait_job(job_id)
         self.assertEqual(obs, 'error')
 
+
 if __name__ == '__main__':
     main()

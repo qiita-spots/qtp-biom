@@ -55,6 +55,8 @@ class SummaryTestsWith(PluginTestCase):
         self.assertEqual(obs_error, "")
 
         # testing analysis biom
+        self.out_dir = mkdtemp()
+        self._clean_up_files.append(self.out_dir)
         self.artifact_id = 9
         self._generate_job()
         obs_success, obs_ainfo, obs_error = generate_html_summary(

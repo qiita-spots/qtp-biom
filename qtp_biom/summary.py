@@ -7,75 +7,9 @@
 # -----------------------------------------------------------------------------
 
 
-from biom import load_table
-from urllib import quote
-from base64 import b64encode
-from os.path import join, basename
-import numpy as np
-from StringIO import StringIO
-
-import seaborn as sns
-
-
-def _generate_html(biom):
-    """Generate the HTML summary for the given biom table
-
-    Parameters
-    ----------
-    biom : biom.Table
-        The biom table to generate the summary from
-
-    Returns
-    -------
-    str
-        A string with the HTML summary page
-    """
-    # Modified from https://goo.gl/cUVHgB
-    num_features, num_samples = biom.shape
-
-    sample_counts = []
-    for count_vector, id_, _ in biom.iter(axis='sample'):
-        sample_counts.append(float(count_vector.sum()))
-    sample_counts = np.asarray(sample_counts)
-
-    sample_count_summary = {
-        'Minimum count': sample_counts.min(),
-        'Maximum count': sample_counts.max(),
-        'Mean count': np.mean(sample_counts),
-        'Median count': np.median(sample_counts),
-    }
-
-    artifact_information = [
-        "<b>Number of samples:</b> %d<br/>" % num_samples,
-        "<b>Number of features:</b> %d<br/>" % num_features,
-        ("<b>Minimum count:</b> %d<br/>" %
-         sample_count_summary['Minimum count']),
-        ("<b>Maximum count:</b> %d<br/>" %
-         sample_count_summary['Maximum count']),
-        ("<b>Median count:</b> %d<br/>" %
-         sample_count_summary['Median count']),
-        ("<b>Mean count:</b> %d<br/>" %
-         sample_count_summary['Mean count']),
-        '<br/><hr/><br/>']
-
-    if sample_count_summary['Minimum count'] == sample_count_summary[
-            'Maximum count']:
-        artifact_information.append(
-            "All the samples in your BIOM table have %d sequences, "
-            "no plot will be shown below."
-            % sample_count_summary['Minimum count'])
-    else:
-        ax = sns.distplot(sample_counts)
-        ax.set_xlabel("Number of sequences per sample")
-        ax.set_ylabel("Frequency")
-        plot = ax.get_figure()
-        sc_plot = StringIO()
-        plot.savefig(sc_plot, format='png')
-        sc_plot.seek(0)
-        uri = 'data:image/png;base64,' + quote(b64encode(sc_plot.buf))
-        artifact_information.append('<img src = "%s"/>' % uri)
-
-    return '\n'.join(artifact_information)
+import pandas as pd
+import qiime2
+from qiime2.plugins.feature_table.visualizers import summarize
 
 
 def generate_html_summary(qclient, job_id, parameters, out_dir):
@@ -104,21 +38,30 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
     qclient_url = "/qiita_db/artifacts/%s/" % artifact_id
     artifact_info = qclient.get(qclient_url)
 
+    # Step 2: get the mapping file, depends if analysis or not
+    if artifact_info['analysis'] is None:
+        qurl = ('/qiita_db/prep_template/%s/' %
+                artifact_info['prep_information'][0])
+        md = qiime2.Metadata.load(qclient.get(qurl)['qiime-map'])
+    else:
+        qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']
+        md = qiime2.Metadata(
+            pd.DataFrame.from_dict(qclient.get(qurl), orient='index'))
+
     # if we get to this point of the code we are sure that this is a biom file
     # and that it only has one element
     fp = artifact_info['files']['biom'][0]
+    table = qiime2.Artifact.import_data('FeatureTable[Frequency]', fp)
 
-    # Step 2: generate HTML summary
-    biom = load_table(fp)
-    of_fp = join(out_dir, "%s.html" % basename(fp))
-    with open(of_fp, 'w') as of:
-        of.write(_generate_html(biom))
+    # Step 3: generate HTML summary
+    summary, = summarize(table=table, sample_metadata=md)
+    summary.export_data(out_dir)
 
-    # Step 3: add the new file to the artifact using REST api
+    # Step 4: add the new file to the artifact using REST api
     success = True
     error_msg = ""
     try:
-        qclient.patch(qclient_url, 'add', '/html_summary/', value=of_fp)
+        qclient.patch(qclient_url, 'add', '/html_summary/', value=out_dir)
     except Exception as e:
         success = False
         error_msg = str(e)

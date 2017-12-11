@@ -18,7 +18,7 @@ artifact_types = [
                        ('preprocessed_fasta', False)])]
 
 # Initialize the plugin
-plugin = QiitaTypePlugin('BIOM type', '2.1.4',
+plugin = QiitaTypePlugin('BIOM type', '2.1.4 - Qiime2',
                          'The Biological Observation Matrix format',
                          validate, generate_html_summary,
                          artifact_types)

@@ -8,8 +8,20 @@
 
 
 import pandas as pd
+from os.path import join, basename
+from json import dumps
+
 import qiime2
 from qiime2.plugins.feature_table.visualizers import summarize
+
+
+Q2_INDEX = """<!DOCTYPE html>
+<html>
+  <body>
+    <iframe src="./support_files/%s" width="100%%" height="850" frameborder=0>
+    </iframe>
+  </body>
+</html>"""
 
 
 def generate_html_summary(qclient, job_id, parameters, out_dir):
@@ -55,13 +67,26 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
 
     # Step 3: generate HTML summary
     summary, = summarize(table=table, sample_metadata=md)
-    summary.export_data(out_dir)
+    index_paths = summary.get_index_paths()
+    # this block is not really necessary but better safe than sorry
+    if 'html' not in index_paths:
+        return (False, None,
+                "Only Qiime 2 visualization with an html index are supported")
+
+    index_name = basename(index_paths['html'])
+    index_fp = join(out_dir, 'index.html')
+    with open(index_fp, 'w') as f:
+        f.write(Q2_INDEX % index_name)
+
+    viz_fp = join(out_dir, 'support_files')
+    summary.export_data(viz_fp)
 
     # Step 4: add the new file to the artifact using REST api
     success = True
     error_msg = ""
     try:
-        qclient.patch(qclient_url, 'add', '/html_summary/', value=out_dir)
+        qclient.patch(qclient_url, 'add', '/html_summary/',
+                      value=dumps({'html': index_fp, 'dir': viz_fp}))
     except Exception as e:
         success = False
         error_msg = str(e)

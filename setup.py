@@ -43,8 +43,8 @@ setup(name='qtp-biom',
       package_data={'qtp_biom': ['support_files/config_file.cfg']},
       scripts=glob('scripts/*'),
       extras_require={'test': ["nose >= 0.10.1", "pep8"]},
-      install_requires=['click >= 3.3', 'biom-format >= 2.1.4, < 2.2.0',
-                        'seaborn', 'qiita_client', 'qiita-files'],
+      install_requires=['click >= 3.3', 'biom-format', 'qiita_client',
+                        'qiita-files', 'qiime2', 'flake8', 'numpy'],
       dependency_links=[
         'https://github.com/qiita-spots/qiita-files/archive/master.zip#'
         'egg=qiita-files-0.1.0-dev'],

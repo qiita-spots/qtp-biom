@@ -178,7 +178,7 @@ class CreateTests(PluginTestCase):
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [(exp_biom_fp, 'biom')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
-        self.assertItemsEqual(obs_t.ids(), ["1.SKB8.640193", "1.SKD8.640184"])
+        self.assertCountEqual(obs_t.ids(), ["1.SKB8.640193", "1.SKD8.640184"])
 
     def test_validate_prefix(self):
         prep_info = {
@@ -202,7 +202,7 @@ class CreateTests(PluginTestCase):
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [(exp_biom_fp, 'biom')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
-        self.assertItemsEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])
+        self.assertCountEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])
 
     def test_validate_representative_set(self):
         sample_ids = ['1.SKB2.640194', '1.SKM4.640180', '1.SKB3.640195',

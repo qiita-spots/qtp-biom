@@ -44,7 +44,7 @@ setup(name='qtp-biom',
       scripts=glob('scripts/*'),
       extras_require={'test': ["nose >= 0.10.1", "pep8"]},
       install_requires=['click >= 3.3', 'biom-format', 'qiita_client',
-                        'qiita-files', 'qiime2', 'flake8', 'numpy'],
+                        'qiita-files', 'qiime2', 'numpy'],
       dependency_links=[
         'https://github.com/qiita-spots/qiita-files/archive/master.zip#'
         'egg=qiita-files-0.1.0-dev'],

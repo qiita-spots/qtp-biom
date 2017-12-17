@@ -8,10 +8,11 @@
 
 from unittest import main
 from tempfile import mkstemp, mkdtemp
-from os import close, remove
+from os import close, remove, mkdir
 from os.path import exists, isdir, join, basename
 from shutil import rmtree
 from json import dumps
+from functools import partial
 
 import numpy as np
 from biom import Table, load_table
@@ -50,7 +51,7 @@ class CreateTests(PluginTestCase):
                       'files': dumps({'biom': [biom_fp]}),
                       'artifact_type': 'BIOM',
                       'analysis': analysis}
-        data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(parameters),
                 'status': 'running'}
         res = self.qclient.post('/apitest/processing_job/', data=data)
@@ -65,6 +66,15 @@ class CreateTests(PluginTestCase):
             sample_ids, analysis=1)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
+        exp_fp = partial(join, self.out_dir)
+        exp_index_fp = exp_fp('index.html')
+        exp_viz_fp = exp_fp('support_files')
+        self.assertTrue(obs_success)
+        self.assertEqual(
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [
+                (biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
+                (exp_viz_fp, 'html_summary_dir')])])
+        self.assertEqual(obs_error, "")
 
     def test_validate_unknown_type(self):
         parameters = {'template': 1, 'files': dumps({'BIOM': ['ignored']}),
@@ -91,9 +101,14 @@ class CreateTests(PluginTestCase):
 
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
+        exp_fp = partial(join, self.out_dir)
+        exp_index_fp = exp_fp('index.html')
+        exp_viz_fp = exp_fp('support_files')
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(biom_fp, 'biom')])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [
+                (biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
+                (exp_viz_fp, 'html_summary_dir')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_no_changes_superset(self):
@@ -104,9 +119,15 @@ class CreateTests(PluginTestCase):
             sample_ids, template=1)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
+        exp_fp = partial(join, self.out_dir)
+        exp_index_fp = exp_fp('index.html')
+        exp_viz_fp = exp_fp('support_files')
+
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(biom_fp, 'biom')])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [
+                (biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
+                (exp_viz_fp, 'html_summary_dir')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_unknown_samples(self):
@@ -171,11 +192,16 @@ class CreateTests(PluginTestCase):
             sample_ids, template=res['prep'])
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
-        exp_biom_fp = join(self.out_dir, basename(biom_fp))
+        exp_fp = partial(join, self.out_dir)
+        exp_biom_fp = exp_fp(basename(biom_fp))
+        exp_index_fp = exp_fp('index.html')
+        exp_viz_fp = exp_fp('support_files')
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(exp_biom_fp, 'biom')])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [
+                (exp_biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
+                (exp_viz_fp, 'html_summary_dir')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertCountEqual(obs_t.ids(), ["1.SKB8.640193", "1.SKD8.640184"])
@@ -195,11 +221,17 @@ class CreateTests(PluginTestCase):
 
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
-        exp_biom_fp = join(self.out_dir, basename(biom_fp))
+        exp_fp = partial(join, self.out_dir)
+        exp_biom_fp = exp_fp(basename(biom_fp))
+        exp_index_fp = exp_fp('index.html')
+        exp_viz_fp = exp_fp('support_files')
+
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
         self.assertEqual(
-            obs_ainfo, [ArtifactInfo(None, 'BIOM', [(exp_biom_fp, 'biom')])])
+            obs_ainfo, [ArtifactInfo(None, 'BIOM', [
+                (exp_biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
+                (exp_viz_fp, 'html_summary_dir')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertCountEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])
@@ -216,6 +248,12 @@ class CreateTests(PluginTestCase):
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n>O2\nATGC\n")
         self._clean_up_files.append(fasta_fp)
+        exp_fp = partial(join, self.out_dir)
+        exp_index_fp = exp_fp('index.html')
+        exp_viz_fp = exp_fp('support_files')
+        with open(exp_index_fp, 'w') as f:
+            f.write("my html")
+        mkdir(exp_viz_fp)
 
         parameters = {'template': parameters['template'],
                       'files': dumps({'biom': [biom_fp],
@@ -225,7 +263,9 @@ class CreateTests(PluginTestCase):
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertTrue(obs_success)
-        files = [(biom_fp, 'biom'), (fasta_fp, 'preprocessed_fasta')]
+        files = [(biom_fp, 'biom'), (fasta_fp, 'preprocessed_fasta'),
+                 (exp_index_fp, 'html_summary'),
+                 (exp_viz_fp, 'html_summary_dir')]
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM',  files)])
         self.assertEqual(obs_error, "")

@@ -146,7 +146,7 @@ def validate(qclient, job_id, parameters, out_dir):
                 filepaths.append((fp, fp_type))
 
     index_fp, viz_fp = _generate_html_summary(
-        new_biom_fp, md, join(out_dir, 'summary'), is_analysis)
+        new_biom_fp, md, join(out_dir), is_analysis)
 
     # Magic number 0, there is only 1 ArtifactInfo on the list
     filepaths.append((index_fp, 'html_summary'))

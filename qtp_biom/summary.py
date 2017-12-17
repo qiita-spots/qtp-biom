@@ -26,9 +26,10 @@ Q2_INDEX = """<!DOCTYPE html>
 
 def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis):
     if is_analysis:
-        metadata = qiime2.Metadata.load(metadata)
+        metadata = qiime2.Metadata(pd.DataFrame.from_dict(
+            metadata, orient='index'))
     else:
-        metadata = qiime2.Metadata(metadata)
+        metadata = qiime2.Metadata.load(metadata)
 
     table = qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
 
@@ -85,13 +86,13 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
     else:
         is_analysis = True
         qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']
-        md = pd.DataFrame.from_dict(qclient.get(qurl), orient='index')
+        md = qclient.get(qurl)
 
     # Step 3: generate HTML summary
     # if we get to this point of the code we are sure that this is a biom file
     # and that it only has one element
     index_fp, viz_fp = _generate_html_summary(
-        artifact_info['files']['biom'][0], md, is_analysis)
+        artifact_info['files']['biom'][0], md, out_dir, is_analysis)
 
     # Step 4: add the new file to the artifact using REST api
     success = True

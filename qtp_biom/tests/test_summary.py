@@ -22,7 +22,7 @@ class SummaryTestsWith(PluginTestCase):
     def _generate_job(self):
         self.parameters = {'input_data': self.artifact_id}
 
-        data = {'command': dumps(['BIOM type', '2.1.4',
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2',
                                   'Generate HTML summary']),
                 'parameters': dumps(self.parameters),
                 'status': 'running'}

@@ -15,6 +15,7 @@ from biom.util import biom_open
 from biom.exception import TableException
 from qiita_client import ArtifactInfo
 from qiita_files.parse import load, FastaIterator
+from .summary import _generate_html_summary
 
 
 def validate(qclient, job_id, parameters, out_dir):
@@ -49,10 +50,17 @@ def validate(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(job_id, "Step 1: Collecting metadata")
     if prep_id is not None:
+        is_analysis = False
         metadata = qclient.get("/qiita_db/prep_template/%s/data/" % prep_id)
         metadata = metadata['data']
+
+        qurl = ('/qiita_db/prep_template/%s/' % prep_id)
+        md = qclient.get(qurl)['qiime-map']
     elif analysis_id is not None:
+        is_analysis = True
         metadata = qclient.get("/qiita_db/analysis/%s/metadata/" % analysis_id)
+
+        md = metadata
     else:
         return (False, None, "Missing metadata information")
 
@@ -136,5 +144,12 @@ def validate(qclient, job_id, parameters, out_dir):
         if fp_type not in ('biom', 'preprocessed_fasta'):
             for fp in fps:
                 filepaths.append((fp, fp_type))
+
+    index_fp, viz_fp = _generate_html_summary(
+        new_biom_fp, md, join(out_dir, 'summary'), is_analysis)
+
+    # Magic number 0, there is only 1 ArtifactInfo on the list
+    filepaths.append((index_fp, 'html_summary'))
+    filepaths.append((viz_fp, 'html_summary_dir'))
 
     return True, [ArtifactInfo(None, 'BIOM', filepaths)], ""

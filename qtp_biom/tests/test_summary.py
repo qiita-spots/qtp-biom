@@ -62,6 +62,11 @@ class SummaryTestsWith(PluginTestCase):
         obs_success, obs_ainfo, obs_error = generate_html_summary(
             self.qclient, self.job_id, self.parameters, self.out_dir)
 
+        # asserting reply
+        self.assertTrue(obs_success)
+        self.assertIsNone(obs_ainfo)
+        self.assertEqual(obs_error, "")
+
 
 if __name__ == '__main__':
     main()

@@ -24,6 +24,32 @@ Q2_INDEX = """<!DOCTYPE html>
 </html>"""
 
 
+def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis):
+    if is_analysis:
+        metadata = qiime2.Metadata.load(metadata)
+    else:
+        metadata = qiime2.Metadata(metadata)
+
+    table = qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
+
+    summary, = summarize(table=table, sample_metadata=metadata)
+    index_paths = summary.get_index_paths()
+    # this block is not really necessary but better safe than sorry
+    if 'html' not in index_paths:
+        return (False, None,
+                "Only Qiime 2 visualization with an html index are supported")
+
+    index_name = basename(index_paths['html'])
+    index_fp = join(out_dir, 'index.html')
+    with open(index_fp, 'w') as f:
+        f.write(Q2_INDEX % index_name)
+
+    viz_fp = join(out_dir, 'support_files')
+    summary.export_data(viz_fp)
+
+    return (index_fp, viz_fp)
+
+
 def generate_html_summary(qclient, job_id, parameters, out_dir):
     """Generates the HTML summary of a BIOM artifact
 
@@ -52,34 +78,20 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
 
     # Step 2: get the mapping file, depends if analysis or not
     if artifact_info['analysis'] is None:
+        is_analysis = False
         qurl = ('/qiita_db/prep_template/%s/' %
                 artifact_info['prep_information'][0])
-        md = qiime2.Metadata.load(qclient.get(qurl)['qiime-map'])
+        md = qclient.get(qurl)['qiime-map']
     else:
+        is_analysis = True
         qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']
-        md = qiime2.Metadata(
-            pd.DataFrame.from_dict(qclient.get(qurl), orient='index'))
-
-    # if we get to this point of the code we are sure that this is a biom file
-    # and that it only has one element
-    fp = artifact_info['files']['biom'][0]
-    table = qiime2.Artifact.import_data('FeatureTable[Frequency]', fp)
+        md = pd.DataFrame.from_dict(qclient.get(qurl), orient='index')
 
     # Step 3: generate HTML summary
-    summary, = summarize(table=table, sample_metadata=md)
-    index_paths = summary.get_index_paths()
-    # this block is not really necessary but better safe than sorry
-    if 'html' not in index_paths:
-        return (False, None,
-                "Only Qiime 2 visualization with an html index are supported")
-
-    index_name = basename(index_paths['html'])
-    index_fp = join(out_dir, 'index.html')
-    with open(index_fp, 'w') as f:
-        f.write(Q2_INDEX % index_name)
-
-    viz_fp = join(out_dir, 'support_files')
-    summary.export_data(viz_fp)
+    # if we get to this point of the code we are sure that this is a biom file
+    # and that it only has one element
+    index_fp, viz_fp = _generate_html_summary(
+        artifact_info['files']['biom'][0], md, is_analysis)
 
     # Step 4: add the new file to the artifact using REST api
     success = True

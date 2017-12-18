@@ -22,7 +22,7 @@ class SummaryTestsWith(PluginTestCase):
     def _generate_job(self):
         self.parameters = {'input_data': self.artifact_id}
 
-        data = {'command': dumps(['BIOM type', '2.1.4',
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2',
                                   'Generate HTML summary']),
                 'parameters': dumps(self.parameters),
                 'status': 'running'}
@@ -61,6 +61,11 @@ class SummaryTestsWith(PluginTestCase):
         self._generate_job()
         obs_success, obs_ainfo, obs_error = generate_html_summary(
             self.qclient, self.job_id, self.parameters, self.out_dir)
+
+        # asserting reply
+        self.assertTrue(obs_success)
+        self.assertIsNone(obs_ainfo)
+        self.assertEqual(obs_error, "")
 
 
 if __name__ == '__main__':

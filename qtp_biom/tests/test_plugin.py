@@ -45,7 +45,7 @@ class PluginTests(PluginTestCase):
 
     def test_execute_job_summary(self):
         # Create a summary job
-        data = {'command': dumps(['BIOM type', '2.1.4',
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2',
                                   'Generate HTML summary']),
                 'parameters': dumps({'input_data': 4}),
                 'status': 'queued'}
@@ -73,7 +73,7 @@ class PluginTests(PluginTestCase):
         table = Table(data, ['O1', 'O2'], ['SKB8.640193', 'SKD8.640184'])
         with biom_open(biom_fp, 'w') as f:
             table.to_hdf5(f, "Test")
-        data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
                     {'files': dumps({'biom': [biom_fp]}),
                      'template': template,
@@ -103,7 +103,7 @@ class PluginTests(PluginTestCase):
         table = Table(data, ['O1', 'O2'], ['S1', 'S2'])
         with biom_open(biom_fp, 'w') as f:
             table.to_hdf5(f, "Test")
-        data = {'command': dumps(['BIOM type', '2.1.4', 'Validate']),
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
                     {'files': dumps({'biom': [biom_fp]}),
                      'template': template,
@@ -115,6 +115,7 @@ class PluginTests(PluginTestCase):
 
         plugin("https://localhost:21174", job_id, self.out_dir)
         obs = self._wait_job(job_id)
+
         self.assertEqual(obs, 'error')
 
 

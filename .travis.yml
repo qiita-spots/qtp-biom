@@ -1,7 +1,8 @@
 language: python
-sudo: false
+sudo: required
+group: deprecated-2017Q4
 env:
-    - PYTHON_VERSION=3.5
+  - PYTHON_VERSION=3.5
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -10,12 +11,12 @@ before_install:
   - conda update --yes conda
 install:
   # installing Qiita in it's own environment python2.7
-  - travis_retry conda create --yes -n qiita python=2.7 pip nose flake8
+  - travis_retry conda create -q --yes -n qiita python=2.7 pip nose flake8
     pyzmq networkx pyparsing natsort mock future libgfortran
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls
-  - pip install https://github.com/biocore/qiita/archive/master.zip --process-dependency-links
+  - pip install https://github.com/biocore/qiita/archive/dev.zip --process-dependency-links
   # as we don't need redbiom we are going to use the default redis port
   - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
@@ -23,10 +24,10 @@ install:
   - qiita-env make --no-load-ontologies
   - source deactivate
   # installing this plugin
-  - travis_retry conda create --yes -n qtp-biom --file https://data.qiime2.org/distro/core/qiime2-2017.11-conda-linux-64.txt
+  - travis_retry conda create -q --yes -n qtp-biom --file https://data.qiime2.org/distro/core/qiime2-2017.11-conda-linux-64.txt
   - source activate qtp-biom
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-  - pip install coveralls
+  - pip install coveralls flake8
   - travis_retry pip install . --process-dependency-links
   - configure_biom --env-script "source activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 before_script:

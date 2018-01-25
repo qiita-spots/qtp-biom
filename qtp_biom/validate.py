@@ -16,6 +16,7 @@ from biom.exception import TableException
 from qiita_client import ArtifactInfo
 from qiita_files.parse import load, FastaIterator
 from .summary import _generate_html_summary
+from skbio.tree import TreeNode
 
 
 def validate(qclient, job_id, parameters, out_dir):
@@ -140,13 +141,25 @@ def validate(qclient, job_id, parameters, out_dir):
 
         filepaths.append((repset_fp, 'preprocessed_fasta'))
 
+    # Validate the sequence specific phylogenetic tree (e.g. generated
+    # by SEPP for Deblur), if it exists
+    tree = None
+    if 'phylogeny' in files:
+        phylogeny_fp = files['phylogeny'][0]
+
+        try:
+            tree = TreeNode.read(phylogeny_fp)
+        except Exception:
+            return False, None, ("Phylogenetic tree cannot be parsed "
+                                 "via scikit-biom")
+
     for fp_type, fps in files.items():
-        if fp_type not in ('biom', 'preprocessed_fasta'):
+        if fp_type not in ('biom', 'preprocessed_fasta', 'phylogeny'):
             for fp in fps:
                 filepaths.append((fp, fp_type))
 
     index_fp, viz_fp = _generate_html_summary(
-        new_biom_fp, md, join(out_dir), is_analysis)
+        new_biom_fp, md, join(out_dir), is_analysis, tree)
 
     # Magic number 0, there is only 1 ArtifactInfo on the list
     filepaths.append((index_fp, 'html_summary'))

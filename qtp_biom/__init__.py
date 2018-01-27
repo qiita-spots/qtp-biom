@@ -15,7 +15,7 @@ from .summary import generate_html_summary
 artifact_types = [
     QiitaArtifactType('BIOM', 'BIOM table', False, False,
                       [('biom', True), ('directory', False), ('log', False),
-                       ('preprocessed_fasta', False)])]
+                       ('preprocessed_fasta', False), ('plain_text', False)])]
 
 # Initialize the plugin
 plugin = QiitaTypePlugin('BIOM type', '2.1.4 - Qiime2',

@@ -46,7 +46,7 @@ def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     # gather some stats about the phylogenetic tree if exists
     summary_tree = ""
     if tree is not None:
-        num_placements = sum([
+        num_placements = len([
             1
             for tip
             in tree.tips()

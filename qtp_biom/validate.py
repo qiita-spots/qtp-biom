@@ -144,17 +144,18 @@ def validate(qclient, job_id, parameters, out_dir):
     # Validate the sequence specific phylogenetic tree (e.g. generated
     # by SEPP for Deblur), if it exists
     tree = None
-    if 'phylogeny' in files:
-        phylogeny_fp = files['phylogeny'][0]
+    if 'plain_text' in files:
+        phylogeny_fp = files['plain_text'][0]
 
         try:
             tree = TreeNode.read(phylogeny_fp)
+            filepaths.append((phylogeny_fp, 'plain_text'))
         except Exception:
             return False, None, ("Phylogenetic tree cannot be parsed "
                                  "via scikit-biom")
 
     for fp_type, fps in files.items():
-        if fp_type not in ('biom', 'preprocessed_fasta', 'phylogeny'):
+        if fp_type not in ('biom', 'preprocessed_fasta', 'plain_text'):
             for fp in fps:
                 filepaths.append((fp, fp_type))
 

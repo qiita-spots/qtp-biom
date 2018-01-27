@@ -24,7 +24,9 @@ install:
   - qiita-env make --no-load-ontologies
   - source deactivate
   # installing this plugin
-  - travis_retry conda create -q --yes -n qtp-biom --file https://data.qiime2.org/distro/core/qiime2-2017.11-conda-linux-64.txt
+  - wget https://data.qiime2.org/distro/core/qiime2-2017.12-py35-linux-conda.yml
+  - travis_retry conda create -q --yes -n qtp-biom --file qiime2-2017.12-py35-linux-conda.yml
+  - rm qiime2-2017.12-py35-linux-conda.yml
   - source activate qtp-biom
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - pip install coveralls flake8

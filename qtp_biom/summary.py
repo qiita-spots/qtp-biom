@@ -27,7 +27,7 @@ Q2_INDEX = """<!DOCTYPE html>
 </html>"""
 
 
-def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree):
+def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     if is_analysis:
         metadata = qiime2.Metadata(pd.DataFrame.from_dict(
             metadata, orient='index'))
@@ -120,8 +120,8 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
         md = qclient.get(qurl)
 
     tree = None
-    if 'phylogeny' in artifact_info['files']:
-        tree = TreeNode.read(artifact_info['files']['phylogeny'][0])
+    if 'plain_text' in artifact_info['files']:
+        tree = TreeNode.read(artifact_info['files']['plain_text'][0])
 
     # Step 3: generate HTML summary
     # if we get to this point of the code we are sure that this is a biom file

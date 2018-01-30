@@ -9,13 +9,14 @@
 from unittest import main
 from tempfile import mkdtemp
 from os import remove
-from os.path import exists, isdir
+from os.path import exists, isdir, join
 from shutil import rmtree
 from json import dumps
+from skbio.tree import TreeNode
 
 from qiita_client.testing import PluginTestCase
 
-from qtp_biom.summary import generate_html_summary
+from qtp_biom.summary import generate_html_summary, _generate_html_summary
 
 
 class SummaryTestsWith(PluginTestCase):
@@ -66,6 +67,34 @@ class SummaryTestsWith(PluginTestCase):
         self.assertTrue(obs_success)
         self.assertIsNone(obs_ainfo)
         self.assertEqual(obs_error, "")
+
+    def test__generate_html_summary_phylogeny(self):
+        fp_biom = join('qtp_biom', 'support_files', 'sepp.biom')
+        fp_tree = join('qtp_biom', 'support_files', 'sepp.tre')
+
+        # load metadata
+        qurl = '/qiita_db/analysis/%s/metadata/' % 1
+        md = self.qclient.get(qurl)
+
+        # load phylogeny
+        tree = TreeNode.read(fp_tree)
+
+        obs_index_fp, obs_viz_fp = _generate_html_summary(
+            fp_biom, md, self.out_dir, True, tree=tree)
+
+        # test if two expected tags show up in the html summary page
+        with open(obs_index_fp) as f:
+            obs_html = ''.join(f.readlines())
+            self.assertTrue('<th>Number placed fragments</th>' in obs_html)
+            self.assertTrue('<td>434</td>' in obs_html)
+
+        # test that phylogeny specific html content does not show up if no
+        # tree is given
+        obs_index_fp, obs_viz_fp = _generate_html_summary(
+            fp_biom, md, self.out_dir, True, tree=None)
+        with open(obs_index_fp) as f:
+            obs_html = ''.join(f.readlines())
+            self.assertTrue('<th>Number placed fragments</th>' not in obs_html)
 
 
 if __name__ == '__main__':

@@ -36,6 +36,50 @@ class CreateTests(PluginTestCase):
                 else:
                     remove(fp)
 
+    def test_validate_phylogeny(self):
+        # Create a new job
+        fp_support_files = join('qtp_biom', 'support_files')
+        filepaths = {'biom': [join(fp_support_files, 'sepp.biom')],
+                     'preprocessed_fasta': [join(fp_support_files, 'sepp.fa')],
+                     'plain_text': [join(fp_support_files, 'sepp.tre')]}
+        parameters = {'template': 1,
+                      'files': dumps(filepaths),
+                      'artifact_type': 'BIOM',
+                      'analysis': 1}
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
+                'parameters': dumps(parameters),
+                'status': 'running'}
+        res = self.qclient.post('/apitest/processing_job/', data=data)
+        job_id = res['job']
+
+        # test validation on valid data
+        obs_success, obs_ainfo, obs_error = validate(
+            self.qclient, job_id, parameters, self.out_dir)
+        self.assertTrue(obs_success)
+        for ft, fp in filepaths.items():
+            self.assertTrue((fp[0], ft) in obs_ainfo[0].files)
+        self.assertEqual(obs_error, '')
+
+        # test that validation failes if tree is no Newick file, i.e. not
+        # parsable by skbio
+        filepaths['plain_text'] = [join(fp_support_files, 'sepp.fa')]
+        parameters = {'template': 1,
+                      'files': dumps(filepaths),
+                      'artifact_type': 'BIOM',
+                      'analysis': 1}
+        data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
+                'parameters': dumps(parameters),
+                'status': 'running'}
+        res = self.qclient.post('/apitest/processing_job/', data=data)
+        job_id = res['job']
+        # test validation on valid data
+        obs_success, obs_ainfo, obs_error = validate(
+            self.qclient, job_id, parameters, self.out_dir)
+        self.assertFalse(obs_success)
+        self.assertEqual(obs_ainfo, None)
+        self.assertEqual(
+            obs_error, 'Phylogenetic tree cannot be parsed via scikit-biom')
+
     def _create_job_and_biom(self, sample_ids, template=None, analysis=None):
         # Create the BIOM table that needs to be valdiated
         fd, biom_fp = mkstemp(suffix=".biom")

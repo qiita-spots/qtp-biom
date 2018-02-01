@@ -13,18 +13,21 @@ from json import dumps
 
 import qiime2
 from qiime2.plugins.feature_table.visualizers import summarize
+from skbio.tree import TreeNode
+from biom import load_table
 
 
 Q2_INDEX = """<!DOCTYPE html>
 <html>
   <body>
+    %s <!-- summarizing phylogenetic tree, if existent -->
     <iframe src="./support_files/%s" width="100%%" height="850" frameborder=0>
     </iframe>
   </body>
 </html>"""
 
 
-def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis):
+def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     if is_analysis:
         metadata = qiime2.Metadata(pd.DataFrame.from_dict(
             metadata, orient='index'))
@@ -40,10 +43,38 @@ def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis):
         return (False, None,
                 "Only Qiime 2 visualization with an html index are supported")
 
+    # gather some stats about the phylogenetic tree if exists
+    summary_tree = ""
+    if tree is not None:
+        num_placements = len([
+            1
+            for tip
+            in tree.tips()
+            if (tip.name is not None) and (not tip.name.isdigit())])
+        num_tips_reference = tree.count(tips=True) - num_placements
+        num_rejected = len(load_table(biom_fp).ids(axis='observation')) - \
+            num_placements
+        summary_tree = (
+            "    <table>\n"
+            "      <tr>\n"
+            "        <th>Number placed fragments</th>\n"
+            "        <td>%s</td>\n"
+            "      </tr>\n"
+            "      <tr>\n"
+            "        <th>Number rejected fragments</th>\n"
+            "        <td>%s</td>\n"
+            "      </tr>\n"
+            "      <tr>\n"
+            "        <th>Number tips in reference</th>\n"
+            "        <td>%s</td>\n"
+            "      </tr>\n"
+            "    </table>") % (num_placements, num_rejected,
+                               num_tips_reference)
+
     index_name = basename(index_paths['html'])
     index_fp = join(out_dir, 'index.html')
     with open(index_fp, 'w') as f:
-        f.write(Q2_INDEX % index_name)
+        f.write(Q2_INDEX % (summary_tree, index_name))
 
     viz_fp = join(out_dir, 'support_files')
     summary.export_data(viz_fp)
@@ -88,11 +119,15 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
         qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']
         md = qclient.get(qurl)
 
+    tree = None
+    if 'plain_text' in artifact_info['files']:
+        tree = TreeNode.read(artifact_info['files']['plain_text'][0])
+
     # Step 3: generate HTML summary
     # if we get to this point of the code we are sure that this is a biom file
     # and that it only has one element
     index_fp, viz_fp = _generate_html_summary(
-        artifact_info['files']['biom'][0], md, out_dir, is_analysis)
+        artifact_info['files']['biom'][0], md, out_dir, is_analysis, tree)
 
     # Step 4: add the new file to the artifact using REST api
     success = True

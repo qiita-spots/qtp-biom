@@ -13,7 +13,7 @@ from .summary import generate_html_summary
 
 # Define the supported artifact types
 artifact_types = [
-    QiitaArtifactType('BIOM', 'BIOM table', False, False,
+    QiitaArtifactType('BIOM', 'BIOM table', False, False, True,
                       [('biom', True), ('directory', False), ('log', False),
                        ('preprocessed_fasta', False), ('plain_text', False)])]
 

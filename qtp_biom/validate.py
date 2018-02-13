@@ -66,7 +66,7 @@ def validate(qclient, job_id, parameters, out_dir):
         return (False, None, "Missing metadata information")
 
     # Check if the biom table has the same sample ids as the prep info
-    qclient.update_job_step(job_id, "Step 2: Validting BIOM file")
+    qclient.update_job_step(job_id, "Step 2: Validating BIOM file")
     new_biom_fp = biom_fp = files['biom'][0]
     table = load_table(biom_fp)
     metadata_ids = set(metadata)

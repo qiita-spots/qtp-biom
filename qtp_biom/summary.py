@@ -7,9 +7,9 @@
 # -----------------------------------------------------------------------------
 
 
-import pandas as pd
 from os.path import join, basename
 from json import dumps
+from io import StringIO
 
 import qiime2
 from qiime2.plugins.feature_table.visualizers import summarize
@@ -29,10 +29,9 @@ Q2_INDEX = """<!DOCTYPE html>
 
 def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     if is_analysis:
-        metadata = qiime2.Metadata(pd.DataFrame.from_dict(
-            metadata, orient='index'))
-    else:
-        metadata = qiime2.Metadata.load(metadata)
+        metadata = StringIO(metadata)
+
+    metadata = qiime2.Metadata.load(metadata)
 
     table = qiime2.Artifact.import_data('FeatureTable[Frequency]', biom_fp)
 

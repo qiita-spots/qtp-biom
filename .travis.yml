@@ -39,7 +39,7 @@ before_script:
 script:
   - source activate qtp-biom
   - sleep 5 # give enough time to the webserver to start
-  - nosetests --with-doctest --with-coverage -v
+  - nosetests --with-doctest --with-coverage --cover-package=qtp_biom
   - flake8 qtp_biom setup.py scripts
 addons:
   postgresql: "9.3"

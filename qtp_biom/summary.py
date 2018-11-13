@@ -6,10 +6,11 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-
-import pandas as pd
+from os import remove
 from os.path import join, basename
 from json import dumps
+import pandas as pd
+from tempfile import mkstemp
 
 import qiime2
 from qiime2.plugins.feature_table.visualizers import summarize
@@ -29,8 +30,14 @@ Q2_INDEX = """<!DOCTYPE html>
 
 def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     if is_analysis:
-        metadata = qiime2.Metadata(pd.DataFrame.from_dict(
-            metadata, orient='index'))
+        # we need to save and load the df so qiime does it's magic for parsing
+        # columns
+        fd, path = mkstemp()
+        df = pd.DataFrame.from_dict(metadata, orient='index')
+        df.to_csv(path, index_label='#SampleID', na_rep='', sep='\t',
+                  encoding='utf-8')
+        metadata = qiime2.Metadata.load(path)
+        remove(path)
     else:
         metadata = qiime2.Metadata.load(metadata)
 

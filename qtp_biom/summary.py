@@ -86,7 +86,9 @@ def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     viz_fp = join(out_dir, 'support_files')
     summary.export_data(viz_fp)
 
-    return (index_fp, viz_fp)
+    table_fp = table.save(join(out_dir, 'feature-table.qza'))
+
+    return (index_fp, viz_fp, table_fp)
 
 
 def generate_html_summary(qclient, job_id, parameters, out_dir):
@@ -133,7 +135,7 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
     # Step 3: generate HTML summary
     # if we get to this point of the code we are sure that this is a biom file
     # and that it only has one element
-    index_fp, viz_fp = _generate_html_summary(
+    index_fp, viz_fp, qza_fp = _generate_html_summary(
         artifact_info['files']['biom'][0], md, out_dir, is_analysis, tree)
 
     # Step 4: add the new file to the artifact using REST api

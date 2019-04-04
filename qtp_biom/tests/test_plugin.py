@@ -52,7 +52,7 @@ class PluginTests(PluginTestCase):
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
 
-        plugin("https://localhost:21174", job_id, self.out_dir)
+        plugin("https://localhost:8383", job_id, self.out_dir)
 
         obs = self._wait_job(job_id)
         self.assertEqual(obs, 'success')
@@ -83,7 +83,7 @@ class PluginTests(PluginTestCase):
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
 
-        plugin("https://localhost:21174", job_id, self.out_dir)
+        plugin("https://localhost:8383", job_id, self.out_dir)
         obs = self._wait_job(job_id)
         self.assertEqual(obs, 'success')
 
@@ -113,7 +113,7 @@ class PluginTests(PluginTestCase):
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
 
-        plugin("https://localhost:21174", job_id, self.out_dir)
+        plugin("https://localhost:8383", job_id, self.out_dir)
         obs = self._wait_job(job_id)
 
         self.assertEqual(obs, 'error')

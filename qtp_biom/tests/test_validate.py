@@ -113,11 +113,12 @@ class CreateTests(PluginTestCase):
         exp_fp = partial(join, self.out_dir)
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
+        exp_qza_fp = exp_fp('feature-table.qza')
         self.assertTrue(obs_success)
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [
                 (biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
-                (exp_viz_fp, 'html_summary_dir')])])
+                (exp_viz_fp, 'html_summary_dir'), (exp_qza_fp, 'qza')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_unknown_type(self):
@@ -148,11 +149,12 @@ class CreateTests(PluginTestCase):
         exp_fp = partial(join, self.out_dir)
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
+        exp_qza_fp = exp_fp('feature-table.qza')
         self.assertTrue(obs_success)
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [
                 (biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
-                (exp_viz_fp, 'html_summary_dir')])])
+                (exp_viz_fp, 'html_summary_dir'), (exp_qza_fp, 'qza')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_no_changes_superset(self):
@@ -166,12 +168,13 @@ class CreateTests(PluginTestCase):
         exp_fp = partial(join, self.out_dir)
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
+        exp_qza_fp = exp_fp('feature-table.qza')
 
         self.assertTrue(obs_success)
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [
                 (biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
-                (exp_viz_fp, 'html_summary_dir')])])
+                (exp_viz_fp, 'html_summary_dir'), (exp_qza_fp, 'qza')])])
         self.assertEqual(obs_error, "")
 
     def test_validate_unknown_samples(self):
@@ -240,12 +243,13 @@ class CreateTests(PluginTestCase):
         exp_biom_fp = exp_fp(basename(biom_fp))
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
+        exp_qza_fp = exp_fp('feature-table.qza')
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [
                 (exp_biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
-                (exp_viz_fp, 'html_summary_dir')])])
+                (exp_viz_fp, 'html_summary_dir'), (exp_qza_fp, 'qza')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertCountEqual(obs_t.ids(), ["1.SKB8.640193", "1.SKD8.640184"])
@@ -269,13 +273,14 @@ class CreateTests(PluginTestCase):
         exp_biom_fp = exp_fp(basename(biom_fp))
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
+        exp_qza_fp = exp_fp('feature-table.qza')
 
         self._clean_up_files.append(exp_biom_fp)
         self.assertTrue(obs_success)
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM', [
                 (exp_biom_fp, 'biom'), (exp_index_fp, 'html_summary'),
-                (exp_viz_fp, 'html_summary_dir')])])
+                (exp_viz_fp, 'html_summary_dir'), (exp_qza_fp, 'qza')])])
         self.assertEqual(obs_error, "")
         obs_t = load_table(exp_biom_fp)
         self.assertCountEqual(obs_t.ids(), ['1.SKB8.640193', '1.SKD8.640184'])
@@ -295,6 +300,7 @@ class CreateTests(PluginTestCase):
         exp_fp = partial(join, self.out_dir)
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
+        exp_qza_fp = exp_fp('feature-table.qza')
         with open(exp_index_fp, 'w') as f:
             f.write("my html")
         mkdir(exp_viz_fp)
@@ -309,7 +315,8 @@ class CreateTests(PluginTestCase):
         self.assertTrue(obs_success)
         files = [(biom_fp, 'biom'), (fasta_fp, 'preprocessed_fasta'),
                  (exp_index_fp, 'html_summary'),
-                 (exp_viz_fp, 'html_summary_dir')]
+                 (exp_viz_fp, 'html_summary_dir'),
+                 (exp_qza_fp, 'qza')]
         self.assertEqual(
             obs_ainfo, [ArtifactInfo(None, 'BIOM',  files)])
         self.assertEqual(obs_error, "")

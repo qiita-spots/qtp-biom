@@ -51,9 +51,9 @@ class SummaryTestsWith(PluginTestCase):
             self.qclient, self.job_id, self.parameters, self.out_dir)
 
         # asserting reply
+        self.assertEqual(obs_error, "")
         self.assertTrue(obs_success)
         self.assertIsNone(obs_ainfo)
-        self.assertEqual(obs_error, "")
 
         # testing analysis biom
         self.out_dir = mkdtemp()
@@ -79,7 +79,7 @@ class SummaryTestsWith(PluginTestCase):
         # load phylogeny
         tree = TreeNode.read(fp_tree)
 
-        obs_index_fp, obs_viz_fp = _generate_html_summary(
+        obs_index_fp, obs_viz_fp, qza_fp = _generate_html_summary(
             fp_biom, md, self.out_dir, True, tree=tree)
 
         # test if two expected tags show up in the html summary page
@@ -90,7 +90,7 @@ class SummaryTestsWith(PluginTestCase):
 
         # test that phylogeny specific html content does not show up if no
         # tree is given
-        obs_index_fp, obs_viz_fp = _generate_html_summary(
+        obs_index_fp, obs_viz_fp, qza_fp = _generate_html_summary(
             fp_biom, md, self.out_dir, True, tree=None)
         with open(obs_index_fp) as f:
             obs_html = ''.join(f.readlines())

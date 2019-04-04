@@ -30,9 +30,9 @@ install:
   - travis_retry conda env create -q -n qtp-biom --file qiime2-2019.1-py36-linux-conda.yml
   - rm qiime2-2019.1-py36-linux-conda.yml
   - source activate qtp-biom
-  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - pip install coveralls flake8
   - travis_retry pip install .
+  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
   - configure_biom --env-script "source activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 before_script:
   - source activate qiita

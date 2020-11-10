@@ -58,7 +58,7 @@ def validate(qclient, job_id, parameters, out_dir):
         qurl = ('/qiita_db/prep_template/%s/' % prep_id)
         response = qclient.get(qurl)
 
-        md = join(f'{out_dir}/merged_information_file.txt')
+        md = f'{out_dir}/merged_information_file.txt'
         _generate_metadata_file(response, md)
     elif analysis_id is not None:
         is_analysis = True

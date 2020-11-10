@@ -29,19 +29,19 @@ Q2_INDEX = """<!DOCTYPE html>
 
 
 def _generate_metadata_file(response, out_fp):
-    """method to minimize code duplication: and merges the prep/sample info files
+    """Method to minimize code duplication: merges the prep/sample info files
 
     Parameters
     ----------
     response : dict
         The response from checking a preparation from Qiita
     out_fp : str
-        The filepath where we want to store the mer
+        The filepath where we want to store the merged metadata
     """
-    sf = pd.read_csv(
-        response['sample-file'], sep='\t', index_col=0, dtype='str')
-    pf = pd.read_csv(
-        response['prep-file'], sep='\t', index_col=0, dtype='str')
+    sf = pd.read_csv(response['sample-file'], sep='\t', index_col=0,
+                     dtype='str', na_values=[], keep_default_na=True)
+    pf = pd.read_csv(response['prep-file'], sep='\t', index_col=0,
+                     dtype='str', na_values=[], keep_default_na=True)
     # merging sample and info files
     df = pf.join(sf, lsuffix="_prep")
     df.to_csv(out_fp, sep='\t')
@@ -142,7 +142,7 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
         qurl = ('/qiita_db/prep_template/%s/' %
                 artifact_info['prep_information'][0])
         response = qclient.get(qurl)
-        md = join(f'{out_dir}/merged_information_file.txt')
+        md = f'{out_dir}/merged_information_file.txt'
         _generate_metadata_file(response, md)
     else:
         is_analysis = True

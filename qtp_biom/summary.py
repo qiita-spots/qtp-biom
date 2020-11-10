@@ -28,6 +28,25 @@ Q2_INDEX = """<!DOCTYPE html>
 </html>"""
 
 
+def _generate_metadata_file(response, out_fp):
+    """method to minimize code duplication: and merges the prep/sample info files
+
+    Parameters
+    ----------
+    response : dict
+        The response from checking a preparation from Qiita
+    out_fp : str
+        The filepath where we want to store the mer
+    """
+    sf = pd.read_csv(
+        response['sample-file'], sep='\t', index_col=0, dtype='str')
+    pf = pd.read_csv(
+        response['prep-file'], sep='\t', index_col=0, dtype='str')
+    # merging sample and info files
+    df = pf.join(sf, lsuffix="_prep")
+    df.to_csv(out_fp, sep='\t')
+
+
 def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
     if is_analysis:
         # we need to save and load the df so qiime does it's magic for parsing
@@ -122,7 +141,9 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
         is_analysis = False
         qurl = ('/qiita_db/prep_template/%s/' %
                 artifact_info['prep_information'][0])
-        md = qclient.get(qurl)['qiime-map']
+        response = qclient.get(qurl)
+        md = join(f'{out_dir}/merged_information_file.txt')
+        _generate_metadata_file(response, md)
     else:
         is_analysis = True
         qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']

@@ -15,7 +15,7 @@ from biom.util import biom_open
 from biom.exception import TableException
 from qiita_client import ArtifactInfo
 from qiita_files.parse import load, FastaIterator
-from .summary import _generate_html_summary
+from .summary import _generate_html_summary, _generate_metadata_file
 from skbio.tree import TreeNode
 
 
@@ -56,7 +56,10 @@ def validate(qclient, job_id, parameters, out_dir):
         metadata = metadata['data']
 
         qurl = ('/qiita_db/prep_template/%s/' % prep_id)
-        md = qclient.get(qurl)['qiime-map']
+        response = qclient.get(qurl)
+
+        md = f'{out_dir}/merged_information_file.txt'
+        _generate_metadata_file(response, md)
     elif analysis_id is not None:
         is_analysis = True
         metadata = qclient.get("/qiita_db/analysis/%s/metadata/" % analysis_id)

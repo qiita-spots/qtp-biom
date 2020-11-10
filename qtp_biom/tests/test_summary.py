@@ -64,9 +64,9 @@ class SummaryTestsWith(PluginTestCase):
             self.qclient, self.job_id, self.parameters, self.out_dir)
 
         # asserting reply
+        self.assertEqual(obs_error, "")
         self.assertTrue(obs_success)
         self.assertIsNone(obs_ainfo)
-        self.assertEqual(obs_error, "")
 
     def test__generate_html_summary_phylogeny(self):
         fp_biom = join('qtp_biom', 'support_files', 'sepp.biom')

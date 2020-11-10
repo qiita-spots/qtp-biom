@@ -38,10 +38,12 @@ def _generate_metadata_file(response, out_fp):
     out_fp : str
         The filepath where we want to store the merged metadata
     """
-    sf = pd.read_csv(response['sample-file'], sep='\t', index_col=0,
-                     dtype='str', na_values=[], keep_default_na=True)
-    pf = pd.read_csv(response['prep-file'], sep='\t', index_col=0,
-                     dtype='str', na_values=[], keep_default_na=True)
+    sf = pd.read_csv(response['sample-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=True)
+    pf = pd.read_csv(response['prep-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=True)
+    sf.set_index('sample_name', inplace=True)
+    pf.set_index('sample_name', inplace=True)
     # merging sample and info files
     df = pf.join(sf, lsuffix="_prep")
     df.to_csv(out_fp, sep='\t')

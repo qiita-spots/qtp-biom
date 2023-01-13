@@ -90,7 +90,7 @@ jobs:
           pip --quiet install .
           pip --quiet install coveralls
 
-          configure_biom --env-script "source activate qtp-biom" --server-cert $QIITA_SERVER_CERT
+          configure_biom --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/

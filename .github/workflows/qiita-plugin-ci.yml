@@ -78,28 +78,21 @@ jobs:
         shell: bash -l {0}
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
-          conda env create -n qiime2 --quiet --file qiime2-2022.8-py38-linux-conda.yml
+          conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
           rm qiime2-2022.8-py38-linux-conda.yml
 
-          conda activate qiime2
+          conda activate qtp-biom
 
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
-          export QP_QIIME2_DBS=${PWD}/databases
           pip --quiet install -U pip
           pip --quiet install .
           pip --quiet install coveralls
 
-          configure_biom --env-script "source activate qiime2" --server-cert $QIITA_SERVER_CERT
+          configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
-
-      - name: Install QIIME 2 plugins
-        shell: bash -l {0}
-        run: |
-          conda activate qiime2
-          qiime
 
       - name: Starting Main Services
         shell: bash -l {0}
@@ -136,11 +129,9 @@ jobs:
         env:
           COVER_PACKAGE: ${{ matrix.cover_package }}
         run: |
-          conda activate qiime2
+          conda activate qtp-biom
           export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
-          export QP_QIIME2_DBS=${PWD}/databases
-          export QP_QIIME2_FILTER_QZA=${PWD}/filtering/
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 

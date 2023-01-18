@@ -134,6 +134,9 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
         The error message, if not successful
     """
     # Step 1: gather file information from qiita using REST api
+    # we are going to use the "raw" code for retrieving artifact_info vs. the
+    # qiita_client.artifact_and_preparation_files method because this works
+    # with biom tables and QIIME 2 artifacts and they _cannot_ be per_sample.
     artifact_id = parameters['input_data']
     qclient_url = "/qiita_db/artifacts/%s/" % artifact_id
     artifact_info = qclient.get(qclient_url)
@@ -151,6 +154,8 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
         qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']
         md = qclient.get(qurl)
 
+    artifact_info['files'] = {k: [vv['filepath'] for vv in v]
+                              for k, v in artifact_info['files'].items()}
     tree = None
     if 'plain_text' in artifact_info['files']:
         tree = TreeNode.read(artifact_info['files']['plain_text'][0])

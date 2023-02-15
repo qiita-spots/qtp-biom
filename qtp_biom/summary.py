@@ -78,7 +78,7 @@ def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
             1
             for tip
             in tree.tips()
-            if (tip.name is not None) and (not tip.name.isdigit())])
+            if (tip.name is not None) and tip.name[0] in 'ATGC'])
         num_tips_reference = tree.count(tips=True) - num_placements
         num_rejected = len(load_table(biom_fp).ids(axis='observation')) - \
             num_placements

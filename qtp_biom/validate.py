@@ -16,7 +16,7 @@ from biom.exception import TableException
 from qiita_client import ArtifactInfo
 from qiita_files.parse import load, FastaIterator
 from .summary import _generate_html_summary, _generate_metadata_file
-from skbio.tree import TreeNode
+import bp
 
 
 def validate(qclient, job_id, parameters, out_dir):
@@ -151,7 +151,8 @@ def validate(qclient, job_id, parameters, out_dir):
         phylogeny_fp = files['plain_text'][0]
 
         try:
-            tree = TreeNode.read(phylogeny_fp)
+            tree = bp.parse_newick(open(phylogeny_fp).read())
+            tree = bp.to_skbio_treenode(tree)
             filepaths.append((phylogeny_fp, 'plain_text'))
         except Exception:
             return False, None, ("Phylogenetic tree cannot be parsed "

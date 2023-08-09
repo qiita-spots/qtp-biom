@@ -150,13 +150,14 @@ def validate(qclient, job_id, parameters, out_dir):
     tree = None
     if 'plain_text' in files:
         # first let's check if is a tgz, if it is, just pass the file
+        filename = files['plain_text'][0]
         if is_tarfile(filename):
-            filepaths.append((files['plain_text'][0], 'plain_text'))
+            filepaths.append((filename, 'plain_text'))
         else:
             try:
-                tree = bp.parse_newick(open(phylogeny_fp).read())
+                tree = bp.parse_newick(open(filename).read())
                 tree = bp.to_skbio_treenode(tree)
-                filepaths.append((phylogeny_fp, 'plain_text'))
+                filepaths.append((filename, 'plain_text'))
             except Exception:
                 return False, None, ("Phylogenetic tree cannot be parsed "
                                      "via scikit-biom")

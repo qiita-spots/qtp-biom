@@ -13,6 +13,7 @@ from json import loads
 from biom import load_table
 from biom.util import biom_open
 from biom.exception import TableException
+from tarfile import is_tarfile
 from qiita_client import ArtifactInfo
 from qiita_files.parse import load, FastaIterator
 from .summary import _generate_html_summary, _generate_metadata_file
@@ -148,15 +149,18 @@ def validate(qclient, job_id, parameters, out_dir):
     # by SEPP for Deblur), if it exists
     tree = None
     if 'plain_text' in files:
-        phylogeny_fp = files['plain_text'][0]
-
-        try:
-            tree = bp.parse_newick(open(phylogeny_fp).read())
-            tree = bp.to_skbio_treenode(tree)
-            filepaths.append((phylogeny_fp, 'plain_text'))
-        except Exception:
-            return False, None, ("Phylogenetic tree cannot be parsed "
-                                 "via scikit-biom")
+        # first let's check if is a tgz, if it is, just pass the file
+        filename = files['plain_text'][0]
+        if is_tarfile(filename):
+            filepaths.append((filename, 'plain_text'))
+        else:
+            try:
+                tree = bp.parse_newick(open(filename).read())
+                tree = bp.to_skbio_treenode(tree)
+                filepaths.append((filename, 'plain_text'))
+            except Exception:
+                return False, None, ("Phylogenetic tree cannot be parsed "
+                                     "via scikit-biom")
 
     for fp_type, fps in files.items():
         if fp_type not in ('biom', 'preprocessed_fasta', 'plain_text'):

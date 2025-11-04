@@ -107,7 +107,6 @@ class CreateTests(PluginTestCase):
                 'parameters': dumps(parameters),
                 'status': 'running'}
         res = self.qclient.post('/apitest/processing_job/', data=data)
-
         job_id = res['job']
 
         return biom_fp, job_id, parameters
@@ -313,7 +312,6 @@ class CreateTests(PluginTestCase):
         exp_qza_fp = exp_fp('feature-table.qza')
         with open(exp_index_fp, 'w') as f:
             f.write("my html")
-        # exp_index_fp = self.deposite_in_qiita_basedir(exp_index_fp)
         mkdir(exp_viz_fp)
 
         parameters = {'template': parameters['template'],
@@ -335,7 +333,7 @@ class CreateTests(PluginTestCase):
         # Extra ids
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n>O2\nATGC\n>O3\nATGC\n")
-        # updating the file content
+        # updating the file content in Qiita main
         fasta_fp = self.qclient.push_file_to_central(fasta_fp)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
@@ -349,7 +347,7 @@ class CreateTests(PluginTestCase):
         # Missing ids
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n")
-        # updating the file content
+        # updating the file content in Qiita main
         fasta_fp = self.qclient.push_file_to_central(fasta_fp)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)

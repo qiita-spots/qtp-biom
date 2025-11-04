@@ -39,9 +39,13 @@ class CreateTests(PluginTestCase):
     def test_validate_phylogeny(self):
         # Create a new job
         fp_support_files = join('qtp_biom', 'support_files')
-        filepaths = {'biom': [join(fp_support_files, 'sepp.biom')],
-                     'preprocessed_fasta': [join(fp_support_files, 'sepp.fa')],
-                     'plain_text': [join(fp_support_files, 'sepp.tre')]}
+        filepaths = {
+            'biom': [self.deposite_in_qiita_basedir(
+                join(fp_support_files, 'sepp.biom'))],
+            'preprocessed_fasta': [self.deposite_in_qiita_basedir(
+                join(fp_support_files, 'sepp.fa'))],
+            'plain_text': [self.deposite_in_qiita_basedir(
+                join(fp_support_files, 'sepp.tre'))]}
         parameters = {'template': 1,
                       'files': dumps(filepaths),
                       'artifact_type': 'BIOM',
@@ -62,7 +66,8 @@ class CreateTests(PluginTestCase):
 
         # test that validation failes if tree is no Newick file, i.e. not
         # parsable by skbio
-        filepaths['plain_text'] = [join(fp_support_files, 'sepp.fa')]
+        filepaths['plain_text'] = [
+            self.deposite_in_qiita_basedir(join(fp_support_files, 'sepp.fa'))]
         parameters = {'template': 1,
                       'files': dumps(filepaths),
                       'artifact_type': 'BIOM',
@@ -90,6 +95,9 @@ class CreateTests(PluginTestCase):
             table.to_hdf5(f, "Test")
         self._clean_up_files.append(biom_fp)
 
+        # send newly created file to qiita main
+        biom_fp = self.deposite_in_qiita_basedir(biom_fp)
+
         # Create a new job
         parameters = {'template': template,
                       'files': dumps({'biom': [biom_fp]}),
@@ -99,6 +107,7 @@ class CreateTests(PluginTestCase):
                 'parameters': dumps(parameters),
                 'status': 'running'}
         res = self.qclient.post('/apitest/processing_job/', data=data)
+
         job_id = res['job']
 
         return biom_fp, job_id, parameters
@@ -297,12 +306,14 @@ class CreateTests(PluginTestCase):
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n>O2\nATGC\n")
         self._clean_up_files.append(fasta_fp)
+        fasta_fp = self.deposite_in_qiita_basedir(fasta_fp)
         exp_fp = partial(join, self.out_dir)
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')
         exp_qza_fp = exp_fp('feature-table.qza')
         with open(exp_index_fp, 'w') as f:
             f.write("my html")
+        # exp_index_fp = self.deposite_in_qiita_basedir(exp_index_fp)
         mkdir(exp_viz_fp)
 
         parameters = {'template': parameters['template'],
@@ -324,6 +335,8 @@ class CreateTests(PluginTestCase):
         # Extra ids
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n>O2\nATGC\n>O3\nATGC\n")
+        # updating the file content
+        fasta_fp = self.qclient.push_file_to_central(fasta_fp)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertFalse(obs_success)
@@ -336,6 +349,8 @@ class CreateTests(PluginTestCase):
         # Missing ids
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n")
+        # updating the file content
+        fasta_fp = self.qclient.push_file_to_central(fasta_fp)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertFalse(obs_success)

@@ -75,7 +75,8 @@ class PluginTests(PluginTestCase):
             table.to_hdf5(f, "Test")
         data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
-                    {'files': dumps({'biom': [biom_fp]}),
+                    {'files': dumps({'biom': [
+                        self.deposite_in_qiita_basedir(biom_fp)]}),
                      'template': template,
                      'artifact_type': 'BIOM'}),
                 'artifact_type': 'BIOM',

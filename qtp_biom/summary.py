@@ -28,20 +28,24 @@ Q2_INDEX = """<!DOCTYPE html>
 </html>"""
 
 
-def _generate_metadata_file(response, out_fp):
+def _generate_metadata_file(qclient, response, out_fp):
     """Method to minimize code duplication: merges the prep/sample info files
 
     Parameters
     ----------
+    qclient : qiita_client.QiitaClient
+        The Qiita server client
     response : dict
         The response from checking a preparation from Qiita
     out_fp : str
         The filepath where we want to store the merged metadata
     """
-    sf = pd.read_csv(response['sample-file'], sep='\t', dtype='str',
-                     na_values=[], keep_default_na=False)
-    pf = pd.read_csv(response['prep-file'], sep='\t', dtype='str',
-                     na_values=[], keep_default_na=False)
+    sf = pd.read_csv(
+        qclient.fetch_file_from_central(response['sample-file']),
+        sep='\t', dtype='str', na_values=[], keep_default_na=False)
+    pf = pd.read_csv(
+        qclient.fetch_file_from_central(response['prep-file']),
+        sep='\t', dtype='str', na_values=[], keep_default_na=False)
     sf.set_index('sample_name', inplace=True)
     pf.set_index('sample_name', inplace=True)
     # merging sample and info files
@@ -148,7 +152,7 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
                 artifact_info['prep_information'][0])
         response = qclient.get(qurl)
         md = f'{out_dir}/merged_information_file.txt'
-        _generate_metadata_file(response, md)
+        _generate_metadata_file(qclient, response, md)
     else:
         is_analysis = True
         qurl = '/qiita_db/analysis/%s/metadata/' % artifact_info['analysis']
@@ -158,20 +162,25 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
                               for k, v in artifact_info['files'].items()}
     tree = None
     if 'plain_text' in artifact_info['files']:
-        tree = TreeNode.read(artifact_info['files']['plain_text'][0])
+        tree = TreeNode.read(
+            qclient.fetch_file_from_central(
+                artifact_info['files']['plain_text'][0]))
 
     # Step 3: generate HTML summary
     # if we get to this point of the code we are sure that this is a biom file
     # and that it only has one element
     index_fp, viz_fp, qza_fp = _generate_html_summary(
-        artifact_info['files']['biom'][0], md, out_dir, is_analysis, tree)
+        qclient.fetch_file_from_central(artifact_info['files']['biom'][0]),
+        md, out_dir, is_analysis, tree)
 
     # Step 4: add the new file to the artifact using REST api
     success = True
     error_msg = ""
     try:
         qclient.patch(qclient_url, 'add', '/html_summary/',
-                      value=dumps({'html': index_fp, 'dir': viz_fp}))
+                      value=dumps({
+                        'html': qclient.push_file_to_central(index_fp),
+                        'dir': qclient.push_file_to_central(viz_fp)}))
     except Exception as e:
         success = False
         error_msg = str(e)

@@ -166,7 +166,8 @@ def validate(qclient, job_id, parameters, out_dir):
     for fp_type, fps in files.items():
         if fp_type not in ('biom', 'preprocessed_fasta', 'plain_text'):
             for fp in fps:
-                filepaths.append((qclient.fetch_file_from_central(fp), fp_type))
+                filepaths.append((qclient.fetch_file_from_central(fp),
+                                  fp_type))
 
     index_fp, viz_fp, qza_fp = _generate_html_summary(
         new_biom_fp, md, join(out_dir), is_analysis, tree)

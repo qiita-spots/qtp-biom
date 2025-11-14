@@ -60,7 +60,7 @@ def validate(qclient, job_id, parameters, out_dir):
         response = qclient.get(qurl)
 
         md = f'{out_dir}/merged_information_file.txt'
-        _generate_metadata_file(qclient, response, md)
+        _generate_metadata_file(response, md)
     elif analysis_id is not None:
         is_analysis = True
         metadata = qclient.get("/qiita_db/analysis/%s/metadata/" % analysis_id)
@@ -71,7 +71,7 @@ def validate(qclient, job_id, parameters, out_dir):
 
     # Check if the biom table has the same sample ids as the prep info
     qclient.update_job_step(job_id, "Step 2: Validating BIOM file")
-    new_biom_fp = biom_fp = qclient.fetch_file_from_central(files['biom'][0])
+    new_biom_fp = biom_fp = files['biom'][0]
     table = load_table(biom_fp)
     metadata_ids = set(metadata)
     biom_sample_ids = set(table.ids())
@@ -117,8 +117,7 @@ def validate(qclient, job_id, parameters, out_dir):
 
     # Validate the representative set, if it exists
     if 'preprocessed_fasta' in files:
-        repset_fp = qclient.fetch_file_from_central(
-            files['preprocessed_fasta'][0])
+        repset_fp = files['preprocessed_fasta'][0]
 
         # The observations ids of the biom table should be the same
         # as the representative sequences ids found in the representative set
@@ -151,7 +150,7 @@ def validate(qclient, job_id, parameters, out_dir):
     tree = None
     if 'plain_text' in files:
         # first let's check if is a tgz, if it is, just pass the file
-        filename = qclient.fetch_file_from_central(files['plain_text'][0])
+        filename = files['plain_text'][0]
         if is_tarfile(filename):
             filepaths.append((filename, 'plain_text'))
         else:
@@ -166,8 +165,7 @@ def validate(qclient, job_id, parameters, out_dir):
     for fp_type, fps in files.items():
         if fp_type not in ('biom', 'preprocessed_fasta', 'plain_text'):
             for fp in fps:
-                filepaths.append((qclient.fetch_file_from_central(fp),
-                                  fp_type))
+                filepaths.append((fp, fp_type))
 
     index_fp, viz_fp, qza_fp = _generate_html_summary(
         new_biom_fp, md, join(out_dir), is_analysis, tree)

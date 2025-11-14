@@ -38,10 +38,10 @@ def _generate_metadata_file(response, out_fp):
     out_fp : str
         The filepath where we want to store the merged metadata
     """
-    sf = pd.read_csv(response['sample-file'],
-        sep='\t', dtype='str', na_values=[], keep_default_na=False)
-    pf = pd.read_csv(response['prep-file'],
-        sep='\t', dtype='str', na_values=[], keep_default_na=False)
+    sf = pd.read_csv(response['sample-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=False)
+    pf = pd.read_csv(response['prep-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=False)
     sf.set_index('sample_name', inplace=True)
     pf.set_index('sample_name', inplace=True)
     # merging sample and info files
@@ -158,15 +158,13 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
                               for k, v in artifact_info['files'].items()}
     tree = None
     if 'plain_text' in artifact_info['files']:
-        tree = TreeNode.read(
-            artifact_info['files']['plain_text'][0])
+        tree = TreeNode.read(artifact_info['files']['plain_text'][0])
 
     # Step 3: generate HTML summary
     # if we get to this point of the code we are sure that this is a biom file
     # and that it only has one element
     index_fp, viz_fp, qza_fp = _generate_html_summary(
-        artifact_info['files']['biom'][0],
-        md, out_dir, is_analysis, tree)
+        artifact_info['files']['biom'][0], md, out_dir, is_analysis, tree)
 
     # Step 4: add the new file to the artifact using REST api
     success = True

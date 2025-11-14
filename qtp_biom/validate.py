@@ -177,7 +177,4 @@ def validate(qclient, job_id, parameters, out_dir):
     if 'qza' not in files:
         filepaths.append((qza_fp, 'qza'))
 
-    for fp, fp_type in filepaths:
-        qclient.push_file_to_central(fp)
-
     return True, [ArtifactInfo(None, 'BIOM', filepaths)], ""

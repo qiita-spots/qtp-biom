@@ -179,8 +179,8 @@ def generate_html_summary(qclient, job_id, parameters, out_dir):
     try:
         qclient.patch(qclient_url, 'add', '/html_summary/',
                       value=dumps({
-                        'html': qclient.push_file_to_central(index_fp),
-                        'dir': qclient.push_file_to_central(viz_fp)}))
+                        'html': index_fp,
+                        'dir': viz_fp}))
     except Exception as e:
         success = False
         error_msg = str(e)

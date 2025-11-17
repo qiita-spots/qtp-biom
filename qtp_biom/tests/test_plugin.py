@@ -67,16 +67,16 @@ class PluginTests(PluginTestCase):
         template = self.qclient.post(
             '/apitest/prep_template/', data=data)['prep']
         # Create a new validate job
-        fd, biom_fp = mkstemp(suffix=".biom")
+        fd, biom_fp = mkstemp(suffix=".biom", prefix=self.base_data_dir)
         close(fd)
         data = np.random.randint(100, size=(2, 2))
         table = Table(data, ['O1', 'O2'], ['SKB8.640193', 'SKD8.640184'])
         with biom_open(biom_fp, 'w') as f:
             table.to_hdf5(f, "Test")
+        self.qclient.push_file_to_central(biom_fp)
         data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
-                    {'files': dumps({'biom': [
-                        self.deposite_in_qiita_basedir(biom_fp)]}),
+                    {'files': dumps({'biom': [biom_fp]}),
                      'template': template,
                      'artifact_type': 'BIOM'}),
                 'artifact_type': 'BIOM',

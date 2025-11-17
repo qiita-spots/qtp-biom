@@ -40,12 +40,9 @@ class CreateTests(PluginTestCase):
         # Create a new job
         fp_support_files = join('qtp_biom', 'support_files')
         filepaths = {
-            'biom': [self.deposite_in_qiita_basedir(
-                join(fp_support_files, 'sepp.biom'))],
-            'preprocessed_fasta': [self.deposite_in_qiita_basedir(
-                join(fp_support_files, 'sepp.fa'))],
-            'plain_text': [self.deposite_in_qiita_basedir(
-                join(fp_support_files, 'sepp.tre'))]}
+            'biom': [join(fp_support_files, 'sepp.biom')],
+            'preprocessed_fasta': [join(fp_support_files, 'sepp.fa')],
+            'plain_text': [join(fp_support_files, 'sepp.tre')]}
         parameters = {'template': 1,
                       'files': dumps(filepaths),
                       'artifact_type': 'BIOM',
@@ -66,8 +63,7 @@ class CreateTests(PluginTestCase):
 
         # test that validation failes if tree is no Newick file, i.e. not
         # parsable by skbio
-        filepaths['plain_text'] = [
-            self.deposite_in_qiita_basedir(join(fp_support_files, 'sepp.fa'))]
+        filepaths['plain_text'] = [join(fp_support_files, 'sepp.fa')]
         parameters = {'template': 1,
                       'files': dumps(filepaths),
                       'artifact_type': 'BIOM',
@@ -94,9 +90,6 @@ class CreateTests(PluginTestCase):
         with biom_open(biom_fp, 'w') as f:
             table.to_hdf5(f, "Test")
         self._clean_up_files.append(biom_fp)
-
-        # send newly created file to qiita main
-        biom_fp = self.deposite_in_qiita_basedir(biom_fp)
 
         # Create a new job
         parameters = {'template': template,
@@ -305,7 +298,6 @@ class CreateTests(PluginTestCase):
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n>O2\nATGC\n")
         self._clean_up_files.append(fasta_fp)
-        fasta_fp = self.deposite_in_qiita_basedir(fasta_fp)
         exp_fp = partial(join, self.out_dir)
         exp_index_fp = exp_fp('index.html')
         exp_viz_fp = exp_fp('support_files')

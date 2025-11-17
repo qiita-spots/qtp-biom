@@ -33,7 +33,7 @@ class SummaryTestsWith(PluginTestCase):
     def setUp(self):
         self.artifact_id = 4
         self._generate_job()
-        self.out_dir = mkdtemp()
+        self.out_dir = mkdtemp(prefix=self.base_data_dir)
 
         self._clean_up_files = [self.out_dir]
 

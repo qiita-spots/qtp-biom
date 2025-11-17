@@ -39,10 +39,9 @@ class CreateTests(PluginTestCase):
     def test_validate_phylogeny(self):
         # Create a new job
         fp_support_files = join('qtp_biom', 'support_files')
-        filepaths = {
-            'biom': [join(fp_support_files, 'sepp.biom')],
-            'preprocessed_fasta': [join(fp_support_files, 'sepp.fa')],
-            'plain_text': [join(fp_support_files, 'sepp.tre')]}
+        filepaths = {'biom': [join(fp_support_files, 'sepp.biom')],
+                     'preprocessed_fasta': [join(fp_support_files, 'sepp.fa')],
+                     'plain_text': [join(fp_support_files, 'sepp.tre')]}
         parameters = {'template': 1,
                       'files': dumps(filepaths),
                       'artifact_type': 'BIOM',

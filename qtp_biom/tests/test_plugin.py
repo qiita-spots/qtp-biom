@@ -9,7 +9,7 @@
 from unittest import main
 from tempfile import mkdtemp, mkstemp
 from os import remove, close
-from os.path import exists, isdir
+from os.path import exists, isdir, join
 from shutil import rmtree
 from json import dumps
 from time import sleep
@@ -98,7 +98,8 @@ class PluginTests(PluginTestCase):
         template = self.qclient.post(
             '/apitest/prep_template/', data=data)['prep']
         # Create a new validate job
-        fd, biom_fp = mkstemp(suffix=".biom")
+        fd, biom_fp = mkstemp(suffix=".biom",
+                              dir=join(self.base_data_dir, 'tmp'))
         close(fd)
         data = np.random.randint(100, size=(2, 2))
         table = Table(data, ['O1', 'O2'], ['S1', 'S2'])
@@ -106,14 +107,14 @@ class PluginTests(PluginTestCase):
             table.to_hdf5(f, "Test")
         data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
-                    {'files': dumps({'biom': [biom_fp]}),
+                    {'files': dumps({
+                        'biom': [self.qclient.push_file_to_central(biom_fp)]}),
                      'template': template,
                      'artifact_type': 'BIOM'}),
                 'artifact_type': 'BIOM',
                 'status': 'queued'}
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
-
         plugin("https://localhost:8383", job_id, self.out_dir)
         obs = self._wait_job(job_id)
 

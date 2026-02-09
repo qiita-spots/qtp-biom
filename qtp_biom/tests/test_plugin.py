@@ -9,7 +9,7 @@
 from unittest import main
 from tempfile import mkdtemp, mkstemp
 from os import remove, close
-from os.path import exists, isdir, join
+from os.path import exists, isdir
 from shutil import rmtree
 from json import dumps
 from time import sleep
@@ -98,8 +98,7 @@ class PluginTests(PluginTestCase):
         template = self.qclient.post(
             '/apitest/prep_template/', data=data)['prep']
         # Create a new validate job
-        fd, biom_fp = mkstemp(suffix=".biom",
-                              dir=join(self.base_data_dir, 'tmp'))
+        fd, biom_fp = mkstemp(suffix=".biom", dir=self.base_data_dir)
         close(fd)
         data = np.random.randint(100, size=(2, 2))
         table = Table(data, ['O1', 'O2'], ['S1', 'S2'])

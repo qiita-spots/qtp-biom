@@ -8,7 +8,7 @@
 
 from unittest import main
 from tempfile import mkdtemp
-from os import remove
+from os import remove, makedirs
 from os.path import exists, isdir, join
 from shutil import rmtree
 from json import dumps
@@ -33,6 +33,7 @@ class SummaryTestsWith(PluginTestCase):
     def setUp(self):
         self.artifact_id = 4
         self._generate_job()
+        makedirs(self.base_data_dir, exist_ok=True)
         self.out_dir = mkdtemp(prefix=self.base_data_dir)
 
         self._clean_up_files = [self.out_dir]

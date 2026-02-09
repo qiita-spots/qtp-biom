@@ -8,7 +8,7 @@
 
 from unittest import main
 from tempfile import mkdtemp, mkstemp
-from os import remove, close
+from os import remove, close, makedirs
 from os.path import exists, isdir
 from shutil import rmtree
 from json import dumps
@@ -26,6 +26,7 @@ class PluginTests(PluginTestCase):
     def setUp(self):
         self.out_dir = mkdtemp()
         self._clean_up_files = [self.out_dir]
+        makedirs(self.base_data_dir, exist_ok=True)
 
     def tearDown(self):
         for fp in self._clean_up_files:
@@ -55,6 +56,8 @@ class PluginTests(PluginTestCase):
         plugin("https://localhost:8383", job_id, self.out_dir)
 
         obs = self._wait_job(job_id)
+        import sys
+        print("STEFAN obs=%s" % obs, file=sys.stderr)
         self.assertEqual(obs, 'success')
 
     def test_execute_job_validate(self):

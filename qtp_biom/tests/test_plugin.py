@@ -56,8 +56,7 @@ class PluginTests(PluginTestCase):
         plugin("https://localhost:8383", job_id, self.out_dir)
 
         obs = self._wait_job(job_id)
-        import sys
-        print("STEFAN obs=%s" % obs, file=sys.stderr)
+        obs = self.qclient.get_job_info(job_id)
         self.assertEqual(obs, 'success')
 
     def test_execute_job_validate(self):
@@ -117,6 +116,7 @@ class PluginTests(PluginTestCase):
                 'status': 'queued'}
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
+
         plugin("https://localhost:8383", job_id, self.out_dir)
         obs = self._wait_job(job_id)
 

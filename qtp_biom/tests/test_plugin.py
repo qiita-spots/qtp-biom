@@ -56,7 +56,6 @@ class PluginTests(PluginTestCase):
         plugin("https://localhost:8383", job_id, self.out_dir)
 
         obs = self._wait_job(job_id)
-        obs = self.qclient.get_job_info(job_id)
         self.assertEqual(obs, 'success')
 
     def test_execute_job_validate(self):

@@ -93,21 +93,23 @@ jobs:
           echo "  - q2templates=2022.8" >> tinyq2.yml
           echo "  - qiime2=2022.8" >> tinyq2.yml
           echo "  - q2-feature-table=2022.8" >> tinyq2.yml
+          echo "DEBUG tinyq2.yml:" 1>&2
+          cat tinyq2.yml 1>&2
           conda config --set channel_priority strict
           conda env create --quiet -n qtp-biom --file tinyq2.yml
 
-          # conda activate qtp-biom
+          conda activate qtp-biom
 
-          # export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
-          # export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
-          # pip --quiet install -U pip
-          # pip --quiet install .
-          # pip --quiet install coveralls
+          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
+          pip --quiet install -U pip
+          pip --quiet install .
+          pip --quiet install coveralls
 
-          # configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
+          configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 
-          # echo "Available Qiita plugins"
-          # ls ~/.qiita_plugins/
+          echo "Available Qiita plugins"
+          ls ~/.qiita_plugins/
 
       - name: Starting Main Services
         shell: bash -l {0}
@@ -124,6 +126,7 @@ jobs:
 
           echo "2. Setting up nginx"
           mkdir -p ${CONDA_PREFIX}/var/run/nginx/
+          mkdir -p /var/log/nginx/
           export NGINX_FILE=`pwd`/qiita-dev/qiita_pet/nginx_example.conf
           export NGINX_FILE_NEW=`pwd`/qiita-dev/qiita_pet/nginx_example_local.conf
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" ${NGINX_FILE} > ${NGINX_FILE_NEW}

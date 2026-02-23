@@ -86,6 +86,9 @@ jobs:
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
           conda config --set channel_priority strict
+          # for qtp-biom, we don't need mafft nor deblur as conda package, which seem to fail in github CI, probably due to EOL of python
+          sed -i "/- mafft=/d" qiime2-2022.8-py38-linux-conda.yml
+          sed -i "/deblur=/d" qiime2-2022.8-py38-linux-conda.yml
           conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
           # rm qiime2-2022.8-py38-linux-conda.yml
 

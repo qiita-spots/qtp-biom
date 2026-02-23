@@ -69,7 +69,7 @@ jobs:
 
           # Setting up main qiita conda environment
           conda config --add channels conda-forge
-          conda create -q --yes -n qiita python=3.9 pip libgfortran numpy cython anaconda::redis
+          conda create -q --yes -n qiita python=3.9 libgfortran numpy nginx cython anaconda::redis pip
           conda activate qiita
           pip install -U pip
           pip install sphinx sphinx-bootstrap-theme nose-timer Click coverage psycopg2-binary

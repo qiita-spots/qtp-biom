@@ -128,11 +128,15 @@ jobs:
           redis-server --daemonize yes --port 7777
 
           echo "2. Setting up nginx"
+          # modify nginx configuration for github CI, before ...
           mkdir -p ${CONDA_PREFIX}/var/run/nginx/
-          sudo chmod a+rw /var/log/nginx/*
           export NGINX_FILE=`pwd`/qiita-dev/qiita_pet/nginx_example.conf
           export NGINX_FILE_NEW=`pwd`/qiita-dev/qiita_pet/nginx_example_local.conf
-          sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" ${NGINX_FILE} > ${NGINX_FILE_NEW}
+          echo "pid /home/runner/work/qiita/qiita/qiita-dev/nginx.pid;" > ${NGINX_FILE_NEW}
+          echo "error_log /home/runner/work/qiita/qiita/qiita-dev/nginx-error.log;" >> ${NGINX_FILE_NEW}
+          echo "access_log /home/runner/work/qiita/qiita/qiita-dev/nginx-access.log;" >> ${NGINX_FILE_NEW}
+          sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" ${NGINX_FILE} >> ${NGINX_FILE_NEW}
+          # ... nginx is actually started
           nginx -c ${NGINX_FILE_NEW}
 
           echo "3. Setting up qiita"

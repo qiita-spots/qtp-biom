@@ -106,7 +106,7 @@ jobs:
           pip --quiet install coveralls
           
           echo "DBEUG HIER 2" 1>&2
-          find /usr/share/miniconda/envs/qtp-biom/lib/python3.8/site-packages/bp 1>&2
+          find /usr/share/miniconda/envs/qtp-biom/lib/python3.8/site-packages/ 1>&2
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 
           echo "DBEUG HIER  3" 1>&2

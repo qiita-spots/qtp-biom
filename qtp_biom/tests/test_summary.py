@@ -83,7 +83,7 @@ class SummaryTestsWith(PluginTestCase):
         import pathlib
 
         cwd = pathlib.Path().resolve()
-        print("STEFAN: fp_biom=%s, pwd=%s" % (os.path.abspath(fp_biom).replace('/', '@')),
+        print("STEFAN: fp_biom=%s, pwd=%s" % (fp_biom, os.path.abspath(fp_biom).replace('/', '@')),
               file=sys.stderr)
         with open(fp_biom, 'r') as f:
             for line in f.readlines():

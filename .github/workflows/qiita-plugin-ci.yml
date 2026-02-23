@@ -85,8 +85,7 @@ jobs:
         shell: bash -l {0}
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
-          conda config --set channel_priority strict
-          conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
+          conda env create -n qtp-biom --quiet -c qiime2/label/r2022.8 -c conda-forge -c bioconda -c defaults --file qiime2-2022.8-py38-linux-conda.yml python=3.8 qiime2=2022.8
           rm qiime2-2022.8-py38-linux-conda.yml
 
           conda activate qtp-biom

@@ -80,7 +80,8 @@ class SummaryTestsWith(PluginTestCase):
         tree = TreeNode.read(fp_tree)
         import sys
         import os
-        print("STEFAN: fp_biom=%s, pwd=%s" % (fp_biom, os.getcwd()), file=sys.stderr)
+        print("STEFAN: fp_biom=%s, pwd=%s" % (fp_biom, os.getcwd()),
+              file=sys.stderr)
         obs_index_fp, obs_viz_fp, qza_fp = _generate_html_summary(
             fp_biom, md, self.out_dir, True, tree=tree)
 

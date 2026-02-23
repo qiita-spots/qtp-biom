@@ -33,13 +33,22 @@ jobs:
     steps:
       # Downloads a copy of the code in your repository before running CI tests
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup for conda
         uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: 3.6
+
+      # we need to download qiita directly so we have "easy" access to
+      # all config files
+      - name: Checkout qiita dev codebase
+        uses: actions/checkout@v4
+        with:
+          repository: qiita-spots/qiita
+          ref: dev
+          path: qiita-dev
 
       - name: Basic dependencies install
         env:
@@ -48,11 +57,6 @@ jobs:
         run: |
           echo "Testing: " $COVER_PACKAGE
 
-          # we need to download qiita directly so we have "easy" access to
-          # all config files
-          wget https://github.com/biocore/qiita/archive/dev.zip
-          unzip dev.zip
-
           # pull out the port so we can modify the configuration file easily
           pgport=${{ job.services.postgres.ports[5432] }}
           sed -i "s/PORT = 5432/PORT = $pgport/" qiita-dev/qiita_core/support_files/config_test.cfg
@@ -60,12 +64,15 @@ jobs:
           # PGPASSWORD is read by pg_restore, which is called by the build_db process.
           export PGPASSWORD=postgres
 
+          # install system wide packages through apt
+          sudo apt-get update && sudo apt-get install -y libpq-dev python3-dev gcc postgresql-client libpcre2-dev libxslt-dev libgd-dev build-essential
+
           # Setting up main qiita conda environment
           conda config --add channels conda-forge
-          conda create -q --yes -n qiita python=3.6 pip==9.0.3 libgfortran numpy nginx cython redis
+          conda create -q --yes -n qiita python=3.9 libgfortran numpy nginx cython anaconda::redis pip
           conda activate qiita
           pip install -U pip
-          pip install sphinx sphinx-bootstrap-theme nose-timer codecov Click
+          pip install sphinx sphinx-bootstrap-theme nose-timer Click coverage psycopg2-binary
 
       - name: Qiita install
         shell: bash -l {0}
@@ -77,19 +84,29 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
-          conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
-          rm qiime2-2022.8-py38-linux-conda.yml
+          wget https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
+          sed -n '/channels/,/dependencies/p' qiime2-2022.8-py38-linux-conda.yml > tinyq2.yml
+          echo "  - q2-metadata=2022.8" >> tinyq2.yml
+          echo "  - q2-mystery-stew=2022.8" >> tinyq2.yml
+          echo "  - q2-types=2022.8" >> tinyq2.yml
+          echo "  - q2cli=2022.8" >> tinyq2.yml
+          echo "  - q2templates=2022.8" >> tinyq2.yml
+          echo "  - qiime2=2022.8" >> tinyq2.yml
+          echo "  - q2-feature-table=2022.8" >> tinyq2.yml
+          conda config --set channel_priority strict
+          conda env create --quiet -n qtp-biom --file tinyq2.yml
 
           conda activate qtp-biom
 
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
           pip --quiet install .
           pip --quiet install coveralls
-
-          configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
+          
+          pip install Cython
+          pip install iow
+          configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
@@ -98,7 +115,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate qiita
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" `pwd`/qiita-dev/qiita_core/support_files/config_test.cfg > ${QIITA_CONFIG_FP}
 
@@ -130,11 +147,13 @@ jobs:
           COVER_PACKAGE: ${{ matrix.cover_package }}
         run: |
           conda activate qtp-biom
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 
+          ls -la
+          readlink -f .
           nosetests --with-doctest --with-coverage --cover-package=qtp_biom
 
       - uses: codecov/codecov-action@v1

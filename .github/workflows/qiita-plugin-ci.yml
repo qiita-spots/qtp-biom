@@ -106,7 +106,8 @@ jobs:
           pip --quiet install coveralls
           
           echo "DBEUG HIER 2" 1>&2
-          pip install Cython iow
+          pip install Cython
+          pip install iow
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 
           echo "DBEUG HIER  3" 1>&2

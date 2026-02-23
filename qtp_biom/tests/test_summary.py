@@ -85,6 +85,9 @@ class SummaryTestsWith(PluginTestCase):
         cwd = pathlib.Path().resolve()
         print("STEFAN: fp_biom=%s, pwd=%s" % (os.path.abspath(fp_biom).replace('/', '@')),
               file=sys.stderr)
+        with open(fp_biom, 'r') as f:
+            for line in f.readlines():
+                print("CONTENT: ", line, file=sys.stderr)
         obs_index_fp, obs_viz_fp, qza_fp = _generate_html_summary(
             fp_biom, md, self.out_dir, True, tree=tree)
 

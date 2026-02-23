@@ -84,16 +84,17 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
+          wget https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
+          sed -n '/channels/,/dependencies/p' qiime2-2022.8-py38-linux-conda.yml > tinyq2.yml
+          echo "  - q2-metadata=2022.8" >> tinyq2.yml
+          echo "  - q2-mystery-stew=2022.8" >> tinyq2.yml
+          echo "  - q2-types=2022.8" >> tinyq2.yml
+          echo "  - q2cli=2022.8" >> tinyq2.yml
+          echo "  - q2templates=2022.8" >> tinyq2.yml
+          echo "  - qiime2=2022.8" >> tinyq2.yml
+          echo "  - q2-feature-table=2022.8" >> tinyq2.yml
           conda config --set channel_priority strict
-          # for qtp-biom, we don't need mafft, sortmerna nor deblur as conda package, which seem to fail in github CI, probably due to EOL of python
-          sed -i "/- mafft=/d" qiime2-2022.8-py38-linux-conda.yml
-          sed -i "/- sortmerna=/d" qiime2-2022.8-py38-linux-conda.yml
-          sed -i "/deblur=/d" qiime2-2022.8-py38-linux-conda.yml
-          echo "  - libhwloc" >> qiime2-2022.8-py38-linux-conda.yml
-          echo "  - cpuonly" >> qiime2-2022.8-py38-linux-conda.yml
-          conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
-          # rm qiime2-2022.8-py38-linux-conda.yml
+          conda env create --quiet -n qtp-biom --file tinyq2.yml
 
           # conda activate qtp-biom
 

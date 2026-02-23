@@ -93,8 +93,6 @@ jobs:
           echo "  - q2templates=2022.8" >> tinyq2.yml
           echo "  - qiime2=2022.8" >> tinyq2.yml
           echo "  - q2-feature-table=2022.8" >> tinyq2.yml
-          echo "DEBUG tinyq2.yml:" 1>&2
-          cat tinyq2.yml 1>&2
           conda config --set channel_priority strict
           conda env create --quiet -n qtp-biom --file tinyq2.yml
 
@@ -104,10 +102,13 @@ jobs:
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
           pip --quiet install .
+          echo "DBEUG HIER1" 1>&2
           pip --quiet install coveralls
-
+          
+          echo "DBEUG HIER 2" 1>&2
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
 
+          echo "DBEUG HIER  3" 1>&2
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
 

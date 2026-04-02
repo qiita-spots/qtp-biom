@@ -89,6 +89,9 @@ jobs:
           echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml
           echo "  - qiime2=${QIIME2RELEASE}" >> tinyq2.yml
           echo "  - q2-feature-table=${QIIME2RELEASE}" >> tinyq2.yml
+          
+          # avoid pandas incompatibility ValueError: Value must be a nonnegative integer or None
+          sed -i '/^dependencies:/a\  - pandas=0.25.*' tinyq2.yml
 
           conda config --set channel_priority strict
           # ensure conda NOT to chose CUDA packages, which are not available on github runners

@@ -82,7 +82,7 @@ jobs:
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
 
           # pin numpy and mkl versions
-          sed -i 's/- numpy=1.19.5/- numpy=1.21.*/' qiime2-2022.8-py38-linux-conda.yml
+          sed -i 's/- numpy=1.23.2/- numpy=1.21.*/' qiime2-2022.8-py38-linux-conda.yml
           echo "  - mkl=2021.*" >> qiime2-2022.8-py38-linux-conda.yml
 
           # ensure conda NOT to chose CUDA packages, which are not available on github runners

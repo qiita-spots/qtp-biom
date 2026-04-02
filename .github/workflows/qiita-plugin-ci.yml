@@ -81,18 +81,8 @@ jobs:
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
 
-          # remove problematic pins
-          sed -i '/.*numpy.*/d' qiime2-2022.8-py38-linux-conda.yml
-          sed -i '/.*mkl.*/d' qiime2-2022.8-py38-linux-conda.yml
-          sed -i '/.*libblas.*/d' qiime2-2022.8-py38-linux-conda.yml
-          sed -i '/.*libgomp.*/d' qiime2-2022.8-py38-linux-conda.yml
-          sed -i '/.*_libgcc_mutex.*/d' qiime2-2022.8-py38-linux-conda.yml
-
-          # add compatible ones
-          sed -i '/^dependencies:/a\  - numpy=1.23.*\n  - libblas=3.9.0=*netlib*\n  - nomkl' qiime2-2022.8-py38-linux-conda.yml
-
           # ensure conda NOT to chose CUDA packages, which are not available on github runners
-          CONDA_OVERRIDE_CUDA="0" conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
+          CONDA_OVERRIDE_CUDA="0" conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml --clasic
           rm qiime2-2022.8-py38-linux-conda.yml
 
           conda activate qtp-biom

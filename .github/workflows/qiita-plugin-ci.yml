@@ -81,6 +81,9 @@ jobs:
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
 
+          # replace outdated bioconductor-genomeinfodbdata with newer version
+          sed -i 's/.*bioconductor-genomeinfodbdata.*/  - bioconductor-genomeinfodbdata=1.2.9/' qiime2-2022.8-py38-linux-conda.yml
+
           # ensure conda NOT to chose CUDA packages, which are not available on github runners
           CONDA_OVERRIDE_CUDA="0" conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml --solver=classic
           rm qiime2-2022.8-py38-linux-conda.yml

@@ -79,14 +79,21 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
+          QIIME2RELEASE=2022.8
+          wget https://data.qiime2.org/distro/core/qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
+          sed -n '/channels/,/dependencies/p' qiime2-${QIIME2RELEASE}-py38-linux-conda.yml > tinyq2.yml
+          echo "  - q2-metadata=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-mystery-stew=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-types=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2cli=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - qiime2=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-feature-table=${QIIME2RELEASE}" >> tinyq2.yml
 
-          # replace outdated bioconductor-genomeinfodbdata with newer version
-          sed -i 's/.*bioconductor-genomeinfodbdata.*/  - bioconductor-genomeinfodbdata=1.2.9/' qiime2-2022.8-py38-linux-conda.yml
-
+          conda config --set channel_priority strict
           # ensure conda NOT to chose CUDA packages, which are not available on github runners
-          CONDA_OVERRIDE_CUDA="0" conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml --solver=classic
-          rm qiime2-2022.8-py38-linux-conda.yml
+          CONDA_OVERRIDE_CUDA="0" conda env create --quiet -n qtp-biom --file tinyq2.yml
+          rm qiime2-${QIIME2RELEASE}-py38-linux-conda.yml tinyq2.yml
 
           conda activate qtp-biom
 

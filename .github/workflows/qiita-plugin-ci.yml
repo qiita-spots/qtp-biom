@@ -80,7 +80,8 @@ jobs:
         shell: bash -l {0}
         run: |
           wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
-          conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
+          # ensure conda NOT to chose CUDA packages, which are not available on github runners
+          CONDA_OVERRIDE_CUDA="0" conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
           rm qiime2-2022.8-py38-linux-conda.yml
 
           conda activate qtp-biom

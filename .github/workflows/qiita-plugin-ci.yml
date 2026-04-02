@@ -84,6 +84,8 @@ jobs:
           # pin numpy and mkl versions
           sed -i 's/- numpy=1.23.2/- numpy=1.21.*/' qiime2-2022.8-py38-linux-conda.yml
           echo "  - mkl=2021.*" >> qiime2-2022.8-py38-linux-conda.yml
+          sed -i '/.*libgomp.*/d' qiime2-2022.8-py38-linux-conda.yml
+          sed -i '/.*_libgcc_mutex.*/d' qiime2-2022.8-py38-linux-conda.yml
 
           # ensure conda NOT to chose CUDA packages, which are not available on github runners
           CONDA_OVERRIDE_CUDA="0" conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml

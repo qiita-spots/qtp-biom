@@ -124,7 +124,7 @@ jobs:
 
           echo "4. Starting supervisord => multiple qiita instances"
           supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
-          sleep 10
+          sleep 20
           cat /tmp/supervisord.log
 
       - name: Main tests

@@ -100,7 +100,7 @@ jobs:
           export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
-          pip --quiet install iow
+          pip --quiet install iow cython
           pip --quiet install .
           pip --quiet install coveralls
 

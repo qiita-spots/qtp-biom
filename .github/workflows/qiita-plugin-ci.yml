@@ -41,17 +41,21 @@ jobs:
           auto-update-conda: true
           python-version: 3.6
 
+      # we need to download qiita directly so we have "easy" access to
+      # all config files
+      - name: Checkout qiita dev codebase
+        uses: actions/checkout@v4
+        with:
+          repository: qiita-spots/qiita
+          ref: dev
+          path: qiita-dev
+
       - name: Basic dependencies install
         env:
           COVER_PACKAGE: ${{ matrix.cover_package }}
         shell: bash -l {0}
         run: |
           echo "Testing: " $COVER_PACKAGE
-
-          # we need to download qiita directly so we have "easy" access to
-          # all config files
-          wget https://github.com/biocore/qiita/archive/dev.zip
-          unzip dev.zip
 
           # pull out the port so we can modify the configuration file easily
           pgport=${{ job.services.postgres.ports[5432] }}
@@ -62,10 +66,8 @@ jobs:
 
           # Setting up main qiita conda environment
           conda config --add channels conda-forge
-          conda create -q --yes -n qiita python=3.6 pip==9.0.3 libgfortran numpy nginx cython redis
+          conda create -q --yes -n qiita python=3.9 libgfortran numpy nginx cython redis
           conda activate qiita
-          pip install -U pip
-          pip install sphinx sphinx-bootstrap-theme nose-timer codecov Click
 
       - name: Qiita install
         shell: bash -l {0}
@@ -77,19 +79,36 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
-          conda env create -n qtp-biom --quiet --file qiime2-2022.8-py38-linux-conda.yml
-          rm qiime2-2022.8-py38-linux-conda.yml
+          QIIME2RELEASE=2022.8
+          wget https://data.qiime2.org/distro/core/qiime2-${QIIME2RELEASE}-py38-linux-conda.yml
+          sed -n '/channels/,/dependencies/p' qiime2-${QIIME2RELEASE}-py38-linux-conda.yml > tinyq2.yml
+          echo "  - q2-metadata=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-mystery-stew=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-types=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2cli=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - qiime2=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-feature-table=${QIIME2RELEASE}" >> tinyq2.yml
+          
+          conda config --set channel_priority strict
+          # ensure conda NOT to chose CUDA packages, which are not available on github runners
+          CONDA_OVERRIDE_CUDA="0" conda env create --quiet -n qtp-biom --file tinyq2.yml
+          rm qiime2-${QIIME2RELEASE}-py38-linux-conda.yml tinyq2.yml
 
           conda activate qtp-biom
 
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          # patch pandas to downgrade behaviour to 0.25.*
+          sed -i "s/pd.option_context('display.max_colwidth', -1)/pd.option_context('display.max_colwidth', None)/" ${CONDA_PREFIX}/lib/python3.8/site-packages/q2templates/util.py
+
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
+          pip --quiet install Cython
+          pip --quiet install iow
           pip --quiet install .
           pip --quiet install coveralls
 
-          configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_SERVER_CERT
+          configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
@@ -98,7 +117,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate qiita
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" `pwd`/qiita-dev/qiita_core/support_files/config_test.cfg > ${QIITA_CONFIG_FP}
 
@@ -124,13 +143,85 @@ jobs:
           sleep 10
           cat /tmp/supervisord.log
 
+      # NEU: Detaillierte Statusprüfung nach dem Start
+      - name: Check Qiita Service Status
+        shell: bash -l {0}
+        # always() stellt sicher, dass dieser Step auch bei Fehlern ausgeführt wird
+        if: always()
+        run: |
+          conda activate qiita
+
+          echo "=== Supervisord Status ==="
+          supervisorctl -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf status || true
+
+          echo ""
+          echo "=== Supervisord Log ==="
+          cat /tmp/supervisord.log || true
+
+          echo ""
+          echo "=== Qiita Tornadoserver Logs ==="
+          # Alle Log-Dateien ausgeben, die supervisord für die Qiita-Instanzen anlegt
+          for logfile in /tmp/qiita_*.log; do
+            if [ -f "$logfile" ]; then
+              echo "--- $logfile ---"
+              cat "$logfile" || true
+            fi
+          done
+
+          echo ""
+          echo "=== Nginx Status ==="
+          nginx -tCONDA_PREFIX}/var/log/nginx/error.log 2>/dev/null || \
+          echo "Kein Nginx Error Log gefunden"
+
+          echo ""
+          echo "=== Redis Status ==="
+          redis-cli -p 7777 ping || echo "Redis antwortet nicht!"
+          echo "Redis Info:"
+          redis-cli -p 7777 info server 2>/dev/null || true
+
+          echo ""
+          echo "=== Postgres Status ==="
+          export PGPASSWORD=postgres
+          pgport=${{ job.services.postgres.ports[5432] }}
+          pg_isready -h localhost -p $pgport -U postgres && \
+            echo "Postgres läuft auf Port $pgport" || \
+            echo "Postgres antwortet nicht auf Port $pgport!"
+
+          echo ""
+          echo "=== Netzwerk: Offene Ports ==="
+          ss -tlnp | grep -E '21174|8383|7777|5432' || \
+          netstat -tlnp 2>/dev/null | grep -E '21174|8383|7777|5432' || \
+          echo "Keine relevanten Ports gefunden"
+
+          echo ""
+          echo "=== HTTP Erreichbarkeit von Qiita ==="
+          curl -sk --max-time 10 https://localhost:21174 -o /dev/null \
+            -w "HTTP Status: %{http_code}\nConnect Time: %{time_connect}s\nTotal Time: %{time_total}s\n" \
+            || echo "Qiita HTTPS nicht erreichbar!"
+
+          echo ""
+          echo "=== Registrierte Qiita Plugins ==="
+          ls -la ~/.qiita_plugins/ || echo "Keine Plugins gefunden"
+
+          echo ""
+          echo "=== Python Prozesse ==="
+          ps aux | grep -E 'python|qiita|tornado|nginx|redis|postgres' | grep -v grep || true
+
+          echo ""
+          echo "=== Disk Usage ==="
+          df -h
+
+          echo ""
+          echo "=== Memory Usage ==="
+          free -h
+
       - name: Main tests
         shell: bash -l {0}
         env:
           COVER_PACKAGE: ${{ matrix.cover_package }}
         run: |
           conda activate qtp-biom
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"

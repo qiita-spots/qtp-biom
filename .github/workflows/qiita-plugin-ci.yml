@@ -199,22 +199,6 @@ jobs:
             -w "HTTP Status: %{http_code}\nConnect Time: %{time_connect}s\nTotal Time: %{time_total}s\n" \
             || echo "Qiita HTTPS nicht erreichbar!"
 
-          echo ""
-          echo "=== Registrierte Qiita Plugins ==="
-          ls -la ~/.qiita_plugins/ || echo "Keine Plugins gefunden"
-
-          echo ""
-          echo "=== Python Prozesse ==="
-          ps aux | grep -E 'python|qiita|tornado|nginx|redis|postgres' | grep -v grep || true
-
-          echo ""
-          echo "=== Disk Usage ==="
-          df -h
-
-          echo ""
-          echo "=== Memory Usage ==="
-          free -h
-
       - name: Main tests
         shell: bash -l {0}
         env:

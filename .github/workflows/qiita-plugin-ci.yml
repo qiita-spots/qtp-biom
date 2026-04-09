@@ -140,8 +140,80 @@ jobs:
 
           echo "4. Starting supervisord => multiple qiita instances"
           supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
-          sleep 120
+          sleep 10
           cat /tmp/supervisord.log
+
+      # NEU: Detaillierte Statusprüfung nach dem Start
+      - name: Check Qiita Service Status
+        shell: bash -l {0}
+        # always() stellt sicher, dass dieser Step auch bei Fehlern ausgeführt wird
+        if: always()
+        run: |
+          conda activate qiita
+
+          echo "=== Supervisord Status ==="
+          supervisorctl -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf status || true
+
+          echo ""
+          echo "=== Supervisord Log ==="
+          cat /tmp/supervisord.log || true
+
+          echo ""
+          echo "=== Qiita Tornadoserver Logs ==="
+          # Alle Log-Dateien ausgeben, die supervisord für die Qiita-Instanzen anlegt
+          for logfile in /tmp/qiita_*.log; do
+            if [ -f "$logfile" ]; then
+              echo "--- $logfile ---"
+              cat "$logfile" || true
+            fi
+          done
+
+          echo ""
+          echo "=== Nginx Status ==="
+          nginx -tCONDA_PREFIX}/var/log/nginx/error.log 2>/dev/null || \
+          echo "Kein Nginx Error Log gefunden"
+
+          echo ""
+          echo "=== Redis Status ==="
+          redis-cli -p 7777 ping || echo "Redis antwortet nicht!"
+          echo "Redis Info:"
+          redis-cli -p 7777 info server 2>/dev/null || true
+
+          echo ""
+          echo "=== Postgres Status ==="
+          export PGPASSWORD=postgres
+          pgport=${{ job.services.postgres.ports[5432] }}
+          pg_isready -h localhost -p $pgport -U postgres && \
+            echo "Postgres läuft auf Port $pgport" || \
+            echo "Postgres antwortet nicht auf Port $pgport!"
+
+          echo ""
+          echo "=== Netzwerk: Offene Ports ==="
+          ss -tlnp | grep -E '21174|8383|7777|5432' || \
+          netstat -tlnp 2>/dev/null | grep -E '21174|8383|7777|5432' || \
+          echo "Keine relevanten Ports gefunden"
+
+          echo ""
+          echo "=== HTTP Erreichbarkeit von Qiita ==="
+          curl -sk --max-time 10 https://localhost:21174 -o /dev/null \
+            -w "HTTP Status: %{http_code}\nConnect Time: %{time_connect}s\nTotal Time: %{time_total}s\n" \
+            || echo "Qiita HTTPS nicht erreichbar!"
+
+          echo ""
+          echo "=== Registrierte Qiita Plugins ==="
+          ls -la ~/.qiita_plugins/ || echo "Keine Plugins gefunden"
+
+          echo ""
+          echo "=== Python Prozesse ==="
+          ps aux | grep -E 'python|qiita|tornado|nginx|redis|postgres' | grep -v grep || true
+
+          echo ""
+          echo "=== Disk Usage ==="
+          df -h
+
+          echo ""
+          echo "=== Memory Usage ==="
+          free -h
 
       - name: Main tests
         shell: bash -l {0}

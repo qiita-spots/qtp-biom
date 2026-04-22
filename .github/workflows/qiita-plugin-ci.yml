@@ -79,20 +79,34 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          wget --quiet https://data.qiime2.org/distro/amplicon/qiime2-amplicon-2024.5-py39-linux-conda.yml
-          conda env create -n qtp-biom --quiet --file qiime2-amplicon-2024.5-py39-linux-conda.yml
-          rm qiime2-amplicon-2024.5-py39-linux-conda.yml
+          # Install only the q2 packages summary.py actually uses instead of
+          # the full amplicon distribution. The full env makes plugin
+          # registration slow enough to trip nginx's proxy_read_timeout on
+          # the second /commands/.../activate/ POST during tests.
+          QIIME2RELEASE=2024.5
+          wget --quiet https://data.qiime2.org/distro/amplicon/qiime2-amplicon-${QIIME2RELEASE}-py39-linux-conda.yml
+          sed -n '/channels/,/dependencies/p' qiime2-amplicon-${QIIME2RELEASE}-py39-linux-conda.yml > tinyq2.yml
+          echo "  - q2-metadata=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-types=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2cli=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - qiime2=${QIIME2RELEASE}" >> tinyq2.yml
+          echo "  - q2-feature-table=${QIIME2RELEASE}" >> tinyq2.yml
+
+          conda config --set channel_priority strict
+          # avoid CUDA packages (not available on GitHub runners)
+          CONDA_OVERRIDE_CUDA="0" conda env create --quiet -n qtp-biom --file tinyq2.yml
+          rm qiime2-amplicon-${QIIME2RELEASE}-py39-linux-conda.yml tinyq2.yml
 
           conda activate qtp-biom
 
           export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
+          pip --quiet install Cython
+          pip --quiet install iow
           pip --quiet install .
           pip --quiet install coveralls
-          # Resolve dep conflicts surfaced by qiime2 amplicon 2024.5:
-          # iow requires scikit-bio<0.6.0; iow + unifrac need cython
-          pip --quiet install 'scikit-bio<0.6.0' cython
 
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 

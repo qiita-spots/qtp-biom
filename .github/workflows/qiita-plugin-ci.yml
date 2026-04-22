@@ -79,26 +79,24 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          # Install only the q2 packages summary.py actually uses instead of
-          # the full amplicon distribution. The full env makes plugin
-          # registration slow enough to trip nginx's proxy_read_timeout on
-          # the second /commands/.../activate/ POST during tests.
+          # Use qiime2's "tiny" distribution instead of "amplicon". The full
+          # amplicon env loads ~100 q2 plugins at plugin-registration time,
+          # which pushes `start_biom register` past nginx's 60s
+          # proxy_read_timeout on /commands/.../activate/ during tests.
           QIIME2RELEASE=2024.5
-          wget --quiet https://data.qiime2.org/distro/amplicon/qiime2-amplicon-${QIIME2RELEASE}-py39-linux-conda.yml
-          sed -n '/channels/,/dependencies/p' qiime2-amplicon-${QIIME2RELEASE}-py39-linux-conda.yml > tinyq2.yml
-          echo "  - q2-metadata=${QIIME2RELEASE}" >> tinyq2.yml
-          echo "  - q2-types=${QIIME2RELEASE}" >> tinyq2.yml
-          echo "  - q2cli=${QIIME2RELEASE}" >> tinyq2.yml
-          echo "  - q2templates=${QIIME2RELEASE}" >> tinyq2.yml
-          echo "  - qiime2=${QIIME2RELEASE}" >> tinyq2.yml
-          echo "  - q2-feature-table=${QIIME2RELEASE}" >> tinyq2.yml
-
-          conda config --set channel_priority strict
-          # avoid CUDA packages (not available on GitHub runners)
-          CONDA_OVERRIDE_CUDA="0" conda env create --quiet -n qtp-biom --file tinyq2.yml
-          rm qiime2-amplicon-${QIIME2RELEASE}-py39-linux-conda.yml tinyq2.yml
+          wget --quiet https://data.qiime2.org/distro/tiny/qiime2-tiny-${QIIME2RELEASE}-py39-linux-conda.yml
+          conda env create --quiet -n qtp-biom --file qiime2-tiny-${QIIME2RELEASE}-py39-linux-conda.yml
+          rm qiime2-tiny-${QIIME2RELEASE}-py39-linux-conda.yml
 
           conda activate qtp-biom
+
+          # qtp_biom/summary.py uses qiime2.plugins.feature_table.visualizers
+          # .summarize, which is not in the "tiny" distribution. Pull it in
+          # (and its q2templates dep) from the amplicon channel.
+          conda install --quiet --yes \
+            -c https://packages.qiime2.org/qiime2/${QIIME2RELEASE}/amplicon/released \
+            -c bioconda -c conda-forge \
+            q2-feature-table=${QIIME2RELEASE}
 
           export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg

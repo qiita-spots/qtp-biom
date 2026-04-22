@@ -90,6 +90,9 @@ jobs:
           pip --quiet install -U pip
           pip --quiet install .
           pip --quiet install coveralls
+          # Resolve dep conflicts surfaced by qiime2 amplicon 2024.5:
+          # iow requires scikit-bio<0.6.0; iow + unifrac need cython
+          pip --quiet install 'scikit-bio<0.6.0' cython
 
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 

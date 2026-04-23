@@ -79,25 +79,13 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          # Use qiime2's "tiny" distribution instead of "amplicon". The full
-          # amplicon env loads ~100 q2 plugins at plugin-registration time,
-          # which pushes `start_biom register` past nginx's 60s
-          # proxy_read_timeout on /commands/.../activate/ during tests.
           QIIME2RELEASE=2024.10
           QIIME2PY=py310
-          wget --quiet https://data.qiime2.org/distro/tiny/qiime2-tiny-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
-          conda env create --quiet -n qtp-biom --file qiime2-tiny-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
-          rm qiime2-tiny-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
+          wget --quiet https://data.qiime2.org/distro/amplicon/qiime2-amplicon-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
+          conda env create --quiet -n qtp-biom --file qiime2-amplicon-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
+          rm qiime2-amplicon-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
 
           conda activate qtp-biom
-
-          # qtp_biom/summary.py uses qiime2.plugins.feature_table.visualizers
-          # .summarize, which is not in the "tiny" distribution. Pull it in
-          # (and its q2templates dep) from the amplicon channel.
-          conda install --quiet --yes \
-            -c https://packages.qiime2.org/qiime2/${QIIME2RELEASE}/amplicon/released \
-            -c bioconda -c conda-forge \
-            q2-feature-table=${QIIME2RELEASE}
 
           export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
@@ -106,8 +94,7 @@ jobs:
           pip --quiet install iow
           pip --quiet install .
           pip --quiet install coveralls
-          # tiny 2024.10 env doesn't include nose (the 2024.5 full amplicon
-          # env did). qtp_biom's CI uses nosetests.
+          # amplicon 2024.10 env doesn't ship nose (qtp_biom's CI uses it).
           pip --quiet install nose
 
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT

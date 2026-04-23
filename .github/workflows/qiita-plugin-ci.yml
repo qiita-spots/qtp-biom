@@ -47,10 +47,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: qiita-spots/qiita
-          # qiita PR #3516 runs register_commands off the tornado ioloop,
-          # removing the /apitest/reload_plugins/ deadlock. Track its
-          # branch until the PR is merged to dev.
-          ref: fix-3515-async-reload-plugins
+          ref: dev
           path: qiita-dev
 
       - name: Basic dependencies install

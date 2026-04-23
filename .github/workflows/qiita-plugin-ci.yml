@@ -119,9 +119,9 @@ jobs:
           export NGINX_FILE=`pwd`/qiita-dev/qiita_pet/nginx_example.conf
           export NGINX_FILE_NEW=`pwd`/qiita-dev/qiita_pet/nginx_example_local.conf
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" ${NGINX_FILE} > ${NGINX_FILE_NEW}
-          # One in four /commands/.../activate/ POSTs exceeds nginx's default
-          # 60s proxy_read_timeout and 504s. Give the upstream 10 minutes.
-          sed -i '/proxy_pass .*mainqiita;/a\            proxy_read_timeout 600s;' ${NGINX_FILE_NEW}
+          # /commands/.../activate/ POSTs can hang for several minutes.
+          # 600s was not enough; try 900s (15 min).
+          sed -i '/proxy_pass .*mainqiita;/a\            proxy_read_timeout 900s;' ${NGINX_FILE_NEW}
           grep -A1 proxy_pass ${NGINX_FILE_NEW}
           nginx -c ${NGINX_FILE_NEW}
 

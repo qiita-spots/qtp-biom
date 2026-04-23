@@ -82,22 +82,17 @@ jobs:
       - name: Install Qiita plugins
         shell: bash -l {0}
         run: |
-          QIIME2RELEASE=2024.10
-          QIIME2PY=py310
-          wget --quiet https://data.qiime2.org/distro/amplicon/qiime2-amplicon-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
-          conda env create --quiet -n qtp-biom --file qiime2-amplicon-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
-          rm qiime2-amplicon-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
+          wget --quiet https://data.qiime2.org/distro/amplicon/qiime2-amplicon-2024.5-py39-linux-conda.yml
+          conda env create -n qtp-biom --quiet --file qiime2-amplicon-2024.5-py39-linux-conda.yml
+          rm qiime2-amplicon-2024.5-py39-linux-conda.yml
 
           conda activate qtp-biom
 
           export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
-          pip --quiet install Cython
-          pip --quiet install iow
           pip --quiet install .
           pip --quiet install coveralls
-          pip --quiet install pytest pytest-cov
 
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 
@@ -145,38 +140,7 @@ jobs:
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 
-          pytest --doctest-modules --cov=qtp_biom qtp_biom
-
-      - name: Dump server logs (on failure)
-        if: failure()
-        shell: bash -l {0}
-        run: |
-          echo "=== supervisord status ==="
-          conda activate qiita
-          supervisorctl -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf status || true
-
-          echo ""
-          echo "=== /tmp/supervisord.log ==="
-          cat /tmp/supervisord.log 2>/dev/null || echo "(none)"
-
-          echo ""
-          echo "=== /tmp/qiita_*.log (tornado workers) ==="
-          for f in /tmp/qiita_*.log; do
-            [ -f "$f" ] && { echo "--- $f ---"; tail -n 400 "$f"; }
-          done
-
-          echo ""
-          echo "=== nginx error log ==="
-          find ${CONDA_PREFIX}/var /usr/local/var /var/log -name '*error*.log' -path '*nginx*' 2>/dev/null | xargs -I{} sh -c 'echo "--- {} ---"; tail -n 200 "{}"' || true
-
-          echo ""
-          echo "=== nginx access log (last 100 lines) ==="
-          find ${CONDA_PREFIX}/var /usr/local/var /var/log -name '*access*.log' -path '*nginx*' 2>/dev/null | xargs -I{} sh -c 'echo "--- {} ---"; tail -n 100 "{}"' || true
-
-          echo ""
-          echo "=== ~/.qiita_plugins/ ==="
-          ls -la ~/.qiita_plugins/ || true
-          cat ~/.qiita_plugins/*.conf 2>/dev/null || true
+          nosetests --with-doctest --with-coverage --cover-package=qtp_biom
 
       - uses: codecov/codecov-action@v1
         with:

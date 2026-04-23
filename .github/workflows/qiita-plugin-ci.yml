@@ -144,6 +144,37 @@ jobs:
 
           pytest --doctest-modules --cov=qtp_biom qtp_biom
 
+      - name: Dump server logs (on failure)
+        if: failure()
+        shell: bash -l {0}
+        run: |
+          echo "=== supervisord status ==="
+          conda activate qiita
+          supervisorctl -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf status || true
+
+          echo ""
+          echo "=== /tmp/supervisord.log ==="
+          cat /tmp/supervisord.log 2>/dev/null || echo "(none)"
+
+          echo ""
+          echo "=== /tmp/qiita_*.log (tornado workers) ==="
+          for f in /tmp/qiita_*.log; do
+            [ -f "$f" ] && { echo "--- $f ---"; tail -n 400 "$f"; }
+          done
+
+          echo ""
+          echo "=== nginx error log ==="
+          find ${CONDA_PREFIX}/var /usr/local/var /var/log -name '*error*.log' -path '*nginx*' 2>/dev/null | xargs -I{} sh -c 'echo "--- {} ---"; tail -n 200 "{}"' || true
+
+          echo ""
+          echo "=== nginx access log (last 100 lines) ==="
+          find ${CONDA_PREFIX}/var /usr/local/var /var/log -name '*access*.log' -path '*nginx*' 2>/dev/null | xargs -I{} sh -c 'echo "--- {} ---"; tail -n 100 "{}"' || true
+
+          echo ""
+          echo "=== ~/.qiita_plugins/ ==="
+          ls -la ~/.qiita_plugins/ || true
+          cat ~/.qiita_plugins/*.conf 2>/dev/null || true
+
       - uses: codecov/codecov-action@v1
         with:
          token: ${{ secrets.CODECOV_TOKEN }}

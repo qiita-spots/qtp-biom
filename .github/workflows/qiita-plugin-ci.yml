@@ -132,7 +132,8 @@ jobs:
           # qtp_biom imports qiime2.plugins.* at module load, which makes
           # `start_biom register` slow; bump nginx's default 60s
           # proxy_read_timeout so /commands/.../activate/ doesn't 504.
-          sed -i '/proxy_pass \$scheme:\/\/mainqiita;/a\            proxy_read_timeout 600s;' ${NGINX_FILE_NEW}
+          sed -i '/proxy_pass .*mainqiita;/a\            proxy_read_timeout 600s;' ${NGINX_FILE_NEW}
+          grep -A1 proxy_pass ${NGINX_FILE_NEW}
           nginx -c ${NGINX_FILE_NEW}
 
           echo "3. Setting up qiita"

@@ -47,7 +47,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: qiita-spots/qiita
-          ref: dev
+          # qiita PR #3516 runs register_commands off the tornado ioloop,
+          # removing the /apitest/reload_plugins/ deadlock. Track its
+          # branch until the PR is merged to dev.
+          ref: fix-3515-async-reload-plugins
           path: qiita-dev
 
       - name: Basic dependencies install
@@ -119,15 +122,6 @@ jobs:
           export NGINX_FILE=`pwd`/qiita-dev/qiita_pet/nginx_example.conf
           export NGINX_FILE_NEW=`pwd`/qiita-dev/qiita_pet/nginx_example_local.conf
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" ${NGINX_FILE} > ${NGINX_FILE_NEW}
-          # /apitest/reload_plugins/ on the master (port 21174) spawns
-          # `start_biom register` synchronously, blocking the tornado
-          # ioloop. start_biom posts /commands/.../activate/ back through
-          # nginx (port 8383). When nginx round-robins that callback onto
-          # master, it deadlocks. Mark master `down` in the upstream so
-          # only workers (21175-21177) receive /activate/ POSTs. The test
-          # client still talks to master directly via port 21174.
-          sed -i 's#server localhost:21174;#server localhost:21174 down;#' ${NGINX_FILE_NEW}
-          grep -A4 "upstream mainqiita" ${NGINX_FILE_NEW}
           nginx -c ${NGINX_FILE_NEW}
 
           echo "3. Setting up qiita"

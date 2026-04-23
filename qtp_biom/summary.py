@@ -12,8 +12,6 @@ from json import dumps
 import pandas as pd
 from tempfile import mkstemp
 
-import qiime2
-from qiime2.plugins.feature_table.visualizers import summarize
 from skbio.tree import TreeNode
 from biom import load_table
 
@@ -50,6 +48,11 @@ def _generate_metadata_file(response, out_fp):
 
 
 def _generate_html_summary(biom_fp, metadata, out_dir, is_analysis, tree=None):
+    # deferred: importing qiime2 triggers full plugin discovery, which
+    # makes qtp_biom's plugin registration slow enough to time out
+    import qiime2
+    from qiime2.plugins.feature_table.visualizers import summarize
+
     if is_analysis:
         # we need to save and load the df so qiime does it's magic for parsing
         # columns

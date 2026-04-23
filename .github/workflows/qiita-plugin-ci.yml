@@ -83,10 +83,11 @@ jobs:
           # amplicon env loads ~100 q2 plugins at plugin-registration time,
           # which pushes `start_biom register` past nginx's 60s
           # proxy_read_timeout on /commands/.../activate/ during tests.
-          QIIME2RELEASE=2024.5
-          wget --quiet https://data.qiime2.org/distro/tiny/qiime2-tiny-${QIIME2RELEASE}-py39-linux-conda.yml
-          conda env create --quiet -n qtp-biom --file qiime2-tiny-${QIIME2RELEASE}-py39-linux-conda.yml
-          rm qiime2-tiny-${QIIME2RELEASE}-py39-linux-conda.yml
+          QIIME2RELEASE=2024.10
+          QIIME2PY=py310
+          wget --quiet https://data.qiime2.org/distro/tiny/qiime2-tiny-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
+          conda env create --quiet -n qtp-biom --file qiime2-tiny-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
+          rm qiime2-tiny-${QIIME2RELEASE}-${QIIME2PY}-linux-conda.yml
 
           conda activate qtp-biom
 

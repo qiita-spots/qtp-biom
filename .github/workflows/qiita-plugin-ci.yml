@@ -94,8 +94,7 @@ jobs:
           pip --quiet install iow
           pip --quiet install .
           pip --quiet install coveralls
-          # amplicon 2024.10 env doesn't ship nose (qtp_biom's CI uses it).
-          pip --quiet install nose
+          pip --quiet install pytest pytest-cov
 
           configure_biom --env-script "source /home/runner/.profile; conda activate qtp-biom" --server-cert $QIITA_ROOTCA_CERT
 
@@ -143,8 +142,7 @@ jobs:
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
 
-          which nosetests && nosetests --version
-          nosetests --with-doctest --with-coverage --cover-package=qtp_biom
+          pytest --doctest-modules --cov=qtp_biom qtp_biom
 
       - uses: codecov/codecov-action@v1
         with:

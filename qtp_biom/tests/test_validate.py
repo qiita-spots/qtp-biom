@@ -324,6 +324,8 @@ class CreateTests(PluginTestCase):
         # Extra ids
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n>O2\nATGC\n>O3\nATGC\n")
+        # updating the file content in Qiita main
+        fasta_fp = self.qclient.push_file_to_central(fasta_fp)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertFalse(obs_success)
@@ -336,6 +338,8 @@ class CreateTests(PluginTestCase):
         # Missing ids
         with open(fasta_fp, 'w') as f:
             f.write(">O1 something\nACTG\n")
+        # updating the file content in Qiita main
+        fasta_fp = self.qclient.push_file_to_central(fasta_fp)
         obs_success, obs_ainfo, obs_error = validate(
             self.qclient, job_id, parameters, self.out_dir)
         self.assertFalse(obs_success)

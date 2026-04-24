@@ -8,7 +8,7 @@
 
 from unittest import main
 from tempfile import mkdtemp, mkstemp
-from os import remove, close
+from os import remove, close, makedirs
 from os.path import exists, isdir
 from shutil import rmtree
 from json import dumps
@@ -26,6 +26,7 @@ class PluginTests(PluginTestCase):
     def setUp(self):
         self.out_dir = mkdtemp()
         self._clean_up_files = [self.out_dir]
+        makedirs(self.base_data_dir, exist_ok=True)
 
     def tearDown(self):
         for fp in self._clean_up_files:
@@ -67,12 +68,13 @@ class PluginTests(PluginTestCase):
         template = self.qclient.post(
             '/apitest/prep_template/', data=data)['prep']
         # Create a new validate job
-        fd, biom_fp = mkstemp(suffix=".biom")
+        fd, biom_fp = mkstemp(suffix=".biom", prefix=self.base_data_dir)
         close(fd)
         data = np.random.randint(100, size=(2, 2))
         table = Table(data, ['O1', 'O2'], ['SKB8.640193', 'SKD8.640184'])
         with biom_open(biom_fp, 'w') as f:
             table.to_hdf5(f, "Test")
+        self.qclient.push_file_to_central(biom_fp)
         data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
                     {'files': dumps({'biom': [biom_fp]}),
@@ -97,7 +99,7 @@ class PluginTests(PluginTestCase):
         template = self.qclient.post(
             '/apitest/prep_template/', data=data)['prep']
         # Create a new validate job
-        fd, biom_fp = mkstemp(suffix=".biom")
+        fd, biom_fp = mkstemp(suffix=".biom", dir=self.base_data_dir)
         close(fd)
         data = np.random.randint(100, size=(2, 2))
         table = Table(data, ['O1', 'O2'], ['S1', 'S2'])
@@ -105,7 +107,8 @@ class PluginTests(PluginTestCase):
             table.to_hdf5(f, "Test")
         data = {'command': dumps(['BIOM type', '2.1.4 - Qiime2', 'Validate']),
                 'parameters': dumps(
-                    {'files': dumps({'biom': [biom_fp]}),
+                    {'files': dumps({
+                        'biom': [self.qclient.push_file_to_central(biom_fp)]}),
                      'template': template,
                      'artifact_type': 'BIOM'}),
                 'artifact_type': 'BIOM',
